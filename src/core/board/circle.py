@@ -14,9 +14,9 @@ class Circle:
     def __init__(
             self,
             coords: CircleCoords,
-            is_checked: bool,
-            is_moving: bool,
-            circle_type: CircleTeam
+            circle_type: CircleTeam,
+            is_checked: bool = False,
+            is_moving: bool = False
             ) -> None:
         self.coords = coords
         self.circle_id = uuid.uuid6()
