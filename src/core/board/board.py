@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from typing import List
 from core.board.circle import Circle
 from core.geometry.circle_coords import CircleCoords
+from core.geometry.delta_coords import DeltaCoords
+from core.movement.moving_directions import MovingDirections
 
 
 class Board:
@@ -35,6 +37,20 @@ class Board:
             1 <= coords.line <= 9 and
             diagonal_limits_start <= coords.diagonal <= diagonal_limits_end
         )
+
+    def get_circle_line(self, circle_checked: Circle, moving: MovingDirections) -> List[Circle]:
+        delta_coords = DeltaCoords.get_delta_coords_from_moving(moving)
+        circle_line = [circle_checked]
+
+        next_coords = circle_line[-1].coords.get_new_coords(delta_coords)
+
+        while self.is_in_board(next_coords) and not self.is_hex_empty(next_coords):
+            circle_line.append(
+                next(circle for circle in self.circles if circle.coords == next_coords) # Подумать над оптимизацией
+                )
+            next_coords = circle_line[-1].coords.get_new_coords(delta_coords)
+
+        return circle_line
 
 @dataclass
 class DiagonalLimits:
