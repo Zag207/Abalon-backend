@@ -1,20 +1,8 @@
-import pytest
-
 from core.board.board import Board
 from core.board.circle import Circle
 from core.board.circle_team import CircleTeam
 from core.geometry.circle_coords import CircleCoords
 from core.movement.moving_directions import MovingDirections
-
-class TestBoard:
-    ...
-
-
-
-
-
-
-
 
 
 class TestBoardCheckForLinear:
@@ -97,3 +85,4 @@ class TestBoardCheckForLinear:
         result = board.check_for_linear(circle_line, MovingDirections.Right, CircleTeam.White, CircleTeam.Black)
 
         assert result is False
+  
