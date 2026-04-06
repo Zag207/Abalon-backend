@@ -30,3 +30,11 @@ class TestCoords:
 
         assert(new_coords.line == 4)
         assert(new_coords.diagonal == 7)
+    
+    def test_get_distance(self):
+        coords1 = CircleCoords(5, 6)
+        coords2 = CircleCoords(2, 4)
+
+        distance = coords1.get_distance(coords2)
+
+        assert(distance == 3)
