@@ -27,7 +27,7 @@ class MovingDirections(Enum):
         
         res = moving_map.get(moving)
 
-        if res == None:
+        if res is None:
             raise ValueError(f"Moving direction value {moving} is not in moving_map")
         
         return res
