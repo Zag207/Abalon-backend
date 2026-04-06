@@ -9,17 +9,10 @@ class DeltaCoords:
         self.delta_diagonal = delta_diagonal
         self.delta_line = delta_line
 
+    @staticmethod
     def get_delta_coords_from_moving(
-            self, 
             moving_direction: MovingDirections
             ) -> DeltaCoords:
-        moving_transform_map = {
-            MovingDirections.UpRight: DeltaCoords(-1, 1),
-            MovingDirections.Right: DeltaCoords(0, 1),
-            MovingDirections.DownRight: DeltaCoords(1, 0),
-            MovingDirections.DownLeft: DeltaCoords(1, -1),
-            MovingDirections.Left: DeltaCoords(0, -1),
-            MovingDirections.UpLeft: DeltaCoords(-1, 0)
-        }
-
-        return moving_transform_map[moving_direction]
+        moving_vector = MovingDirections.get_moving_vector(moving_direction)
+        
+        return DeltaCoords(moving_vector[0], moving_vector[1])
