@@ -8,6 +8,12 @@ class CircleCoords:
     def __init__(self, line: int, diagonal: int) -> None:
         self.diagonal = diagonal
         self.line = line
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, CircleCoords):
+            return NotImplemented
+
+        return self.line == other.line and self.diagonal == other.diagonal
     
     def get_distance(self, coords: CircleCoords) -> int:
         diagonal_dist = abs(self.diagonal - coords.diagonal)
