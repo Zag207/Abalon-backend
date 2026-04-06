@@ -1,8 +1,8 @@
-from core.circle_coords import CircleCoords
-from core.circle_team import CircleTeam
+from core.geometry.circle_coords import CircleCoords
+from core.board.circle_team import CircleTeam
 import uuid
 
-from core.delta_coords import DeltaCoords
+from core.geometry.delta_coords import DeltaCoords
 
 class Circle:
     circle_id: uuid.UUID

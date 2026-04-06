@@ -1,4 +1,4 @@
-from core.delta_coords import DeltaCoords
+from core.geometry.delta_coords import DeltaCoords
 
 
 class CircleCoords:

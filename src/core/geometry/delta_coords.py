@@ -1,4 +1,4 @@
-from core.moving_directions import MovingDirections
+from core.movement.moving_directions import MovingDirections
 
 
 class DeltaCoords:

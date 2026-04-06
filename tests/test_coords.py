@@ -1,8 +1,8 @@
 import pytest
 
-from core.delta_coords import DeltaCoords
-from core.moving_directions import MovingDirections
-from core.circle_coords import CircleCoords
+from core.geometry.delta_coords import DeltaCoords
+from core.movement.moving_directions import MovingDirections
+from core.geometry.circle_coords import CircleCoords
 
 
 class TestCoords:
