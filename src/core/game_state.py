@@ -1,0 +1,69 @@
+from dataclasses import dataclass, field
+from typing import List
+from uuid import UUID
+
+from core.board.board import Board
+from core.board.circle import Circle
+from core.board.circle_team import CircleTeam, get_enemy_team
+from core.movement.moving_directions import MovingDirections
+
+WINNER_SCORE = 6
+
+@dataclass
+class MovingResState:
+    is_error: bool
+    circles_moving: List[Circle] = field(default_factory=list)
+
+class GameState:
+    board: Board
+    score_black: int
+    score_white: int
+    curr_team: CircleTeam
+
+    def __init__(self, circles: List[Circle]) -> None:
+        self.board = Board(circles)
+        self.curr_team = CircleTeam.White
+        self.score_black = 0
+        self.score_white = 0
+    
+    def get_winner_team(self) -> CircleTeam | None:
+        if self.score_black >= WINNER_SCORE:
+            return CircleTeam.Black
+        elif self.score_white >= WINNER_SCORE:
+            return CircleTeam.White
+        else:
+            return None
+    
+    def is_win(self) -> bool:
+        return self.score_black >= WINNER_SCORE or self.score_white >= WINNER_SCORE
+    
+    def get_moving_team(self) -> CircleTeam:
+        return get_enemy_team(self.curr_team)
+
+    def get_circles(self) -> List[Circle]:
+        return self.board.circles
+
+    def move(
+            self,
+            circles_checked_ids: List[UUID],
+            move_direction: MovingDirections,
+            moving_team: CircleTeam
+            ) -> MovingResState:
+        if moving_team != self.get_moving_team():
+            return MovingResState(True, [])
+
+        moving_res = self.board.move(circles_checked_ids, move_direction, moving_team)
+
+        if not moving_res.is_error:
+            self.curr_team = moving_team
+
+            if moving_res.increasing_score > 0:
+                match moving_team:
+                    case CircleTeam.Black:
+                        self.score_black += 1
+                    case CircleTeam.White:
+                        self.score_white += 1
+                    case _:
+                        pass
+        
+        return MovingResState(moving_res.is_error, moving_res.circles_moving)
