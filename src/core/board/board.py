@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import List
+from uuid import UUID
 from core.board.circle import Circle
 from core.board.circle_team import CircleTeam
 from core.geometry.circle_coords import CircleCoords
@@ -40,6 +41,9 @@ class Board:
         )
 
     def get_circle_line(self, circle_checked: Circle, moving: MovingDirections) -> List[Circle]:
+        if circle_checked is None:
+            return []
+        
         delta_coords = DeltaCoords.get_delta_coords_from_moving(moving)
         circle_line = [circle_checked]
 
@@ -60,6 +64,9 @@ class Board:
             current_team: CircleTeam,
             enemy_team: CircleTeam
             ) -> bool:
+        if len(circle_line) == 0:
+            return False
+
         res = True
         delta_coords = DeltaCoords.get_delta_coords_from_moving(moving)
 
@@ -107,6 +114,9 @@ class Board:
             circles_checked: List[Circle],
             moving: MovingDirections
             ) -> bool:
+        if len(circles_checked) == 0:
+            return False
+
         line = circles_checked[0].coords.line
         diagonal = circles_checked[0].coords.diagonal
 
@@ -144,8 +154,20 @@ class Board:
 
         return res
 
+    # def move(
+    #         self,
+    #         circle_checked_ids: List[UUID],
+    #         move_direction: MovingDirections,
+    #         current_team: CircleTeam
+    # ) -> MoveResult:
+    #     circle_checked = 
+
 @dataclass
 class DiagonalLimits:
     diagonal_start: int
     diagonal_end: int
 
+# @dataclass
+# class MoveResult:
+#     is_error: bool
+#     increasing_score: int
