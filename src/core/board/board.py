@@ -102,6 +102,48 @@ class Board:
 
         return res
 
+    def check_for_parall(
+            self,
+            circles_checked: List[Circle],
+            moving: MovingDirections
+            ) -> bool:
+        line = circles_checked[0].coords.line
+        diagonal = circles_checked[0].coords.diagonal
+
+        is_one_line = all(circle.coords.line == line for circle in circles_checked)
+        is_one_diagonal = all(circle.coords.diagonal == diagonal for circle in circles_checked)
+
+        sorted_circles_checked = sorted(circles_checked, key=lambda c: c.coords.diagonal)
+
+        # Проверка диагонального проседания
+        is_one_other_diagonal = True
+        for i in range(1, len(sorted_circles_checked)):
+            line_dist = sorted_circles_checked[i].coords.line - sorted_circles_checked[i - 1].coords.line
+            diagonal_dist = sorted_circles_checked[i].coords.diagonal - sorted_circles_checked[i - 1].coords.diagonal
+            status = (-1 <= line_dist <= 0) and (diagonal_dist == 1 or diagonal_dist == 0)
+            if not status:
+                is_one_other_diagonal = False
+                break
+
+        res = is_one_line or is_one_diagonal or is_one_other_diagonal
+
+        # Проверка, свободна ли лунка по направлению движения
+        delta_coords = DeltaCoords.get_delta_coords_from_moving(moving)
+        res = res and all(
+            self.is_in_board(circle.coords.get_new_coords(delta_coords)) and
+            self.is_hex_empty(circle.coords.get_new_coords(delta_coords))
+            for circle in circles_checked
+        )
+
+        # Проверка, находятся ли фишки рядом
+        sorted_circles_checked = sorted(circles_checked, key=lambda c: c.coords.get_distance(circles_checked[0].coords))
+        res = res and all(
+            sorted_circles_checked[i].coords.get_distance(sorted_circles_checked[i + 1].coords) <= 1
+            for i in range(len(sorted_circles_checked) - 1)
+        )
+
+        return res
+
 @dataclass
 class DiagonalLimits:
     diagonal_start: int
