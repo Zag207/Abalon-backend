@@ -1,12 +1,15 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List
 from uuid import UUID
 from core.board.circle import Circle
-from core.board.circle_team import CircleTeam
+from core.board.circle_team import CircleTeam, get_enemy_team
+from core.board.move_utils import update_circle_move_linear, update_circle_move_parall
 from core.geometry.circle_coords import CircleCoords
 from core.geometry.delta_coords import DeltaCoords
 from core.movement.moving_directions import MovingDirections
+from core.movement.moving_types import MovingTypes
 
+#TODO: добавить в тестах на get_diagonal_limits_for_line, check_for_linear, check_for_parall проверки на пустой список и переданных фишки
 
 class Board:
     circles: List[Circle]
@@ -154,20 +157,99 @@ class Board:
 
         return res
 
-    # def move(
-    #         self,
-    #         circle_checked_ids: List[UUID],
-    #         move_direction: MovingDirections,
-    #         current_team: CircleTeam
-    # ) -> MoveResult:
-    #     circle_checked = 
+    def get_moving_type(self, circles_checked_count: int) -> MovingTypes:
+        res = MovingTypes.NoMove
+
+        if circles_checked_count == 1:
+            res = MovingTypes.Linear
+        elif circles_checked_count > 1:
+            res = MovingTypes.Parall
+        
+        return res
+
+    def move(
+            self,
+            circles_checked_ids: List[UUID],
+            move_direction: MovingDirections,
+            current_team: CircleTeam
+    ) -> MoveResult:
+        circles_ids = {circle.circle_id for circle in self.circles}
+        missing_ids = [cid for cid in circles_checked_ids if cid not in circles_ids]
+
+        if len(missing_ids) != 0:
+            return MoveResult(is_error=True)
+        
+        circles_checked = list(filter(lambda c: c.circle_id in circles_checked_ids, self.circles)) # Можно оптимизировать: сделать индексацию по id и получить сразу по id, не производя каждый раз поиск
+        moving_type = self.get_moving_type(len(circles_checked))
+        increasing_score = 0
+
+        if moving_type == MovingTypes.Parall:
+            is_good_move = self.check_for_parall(circles_checked, move_direction)
+            moving_circles = []
+
+            if is_good_move:
+                self.circles = list(map(
+                    lambda c: update_circle_move_parall(
+                        c,
+                        circles_checked_ids,
+                        DeltaCoords.get_delta_coords_from_moving(move_direction),
+                        moving_circles
+                        ),
+                    self.circles
+                    ))
+            
+            return MoveResult(
+                is_error=not is_good_move,
+                increasing_score=increasing_score,
+                circles_moving=moving_circles
+            )
+        elif moving_type == MovingTypes.Linear:
+            circle_line = self.get_circle_line(circles_checked[0], move_direction)
+            is_good_move = self.check_for_linear(
+                circle_line,
+                move_direction,
+                current_team,
+                get_enemy_team(current_team)
+                )
+            moving_circles = []
+            
+            if is_good_move:
+                circle_line_ids = [circle.circle_id for circle in circle_line]
+                delta_coords = DeltaCoords.get_delta_coords_from_moving(move_direction)
+                new_circles = []
+
+                for circle in self.circles:
+                    updated_circle, score_delta = update_circle_move_linear(
+                        circle,
+                        circle_line_ids,
+                        delta_coords,
+                        self.is_in_board,
+                        moving_circles,
+                    )
+                    increasing_score = increasing_score or score_delta # только 1 очко, так как за один ход может вылезти одна фишка
+
+                    if updated_circle is not None:
+                        new_circles.append(updated_circle)
+
+                self.circles = new_circles # присваиваю новый массив, так как фишки могут удаляться
+
+            return MoveResult(
+                is_error=not is_good_move,
+                increasing_score=increasing_score,
+                circles_moving=moving_circles
+            )
+        else:
+            return MoveResult(is_error=True)
+
+        
 
 @dataclass
 class DiagonalLimits:
     diagonal_start: int
     diagonal_end: int
 
-# @dataclass
-# class MoveResult:
-#     is_error: bool
-#     increasing_score: int
+@dataclass
+class MoveResult:
+    is_error: bool
+    increasing_score: int = 0
+    circles_moving: List[Circle] = field(default_factory=list)
