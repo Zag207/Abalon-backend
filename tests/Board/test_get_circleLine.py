@@ -6,6 +6,12 @@ from core.movement.moving_directions import MovingDirections
 
 
 class TestBoardGetCircleLine:
+    def test_get_circle_line_returns_empty_list_when_circle_checked_none(self):
+        board = Board([])
+        res = board.get_circle_line(None, MovingDirections.DownLeft) # type: ignore
+
+        assert res == []
+        
     def test_get_circle_line_returns_only_checked_when_next_hex_is_empty(self):
         circle_checked = Circle(CircleCoords(5, 5), CircleTeam.White)
         board = Board([circle_checked])

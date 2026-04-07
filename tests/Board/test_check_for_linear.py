@@ -6,6 +6,13 @@ from core.movement.moving_directions import MovingDirections
 
 
 class TestBoardCheckForLinear:
+    def test_check_for_linear_empty_circle_line(self):
+        board = Board([])
+
+        result = board.check_for_linear([], MovingDirections.Right, CircleTeam.White, CircleTeam.Black)
+
+        assert result is False
+
     def test_check_for_linear_valid_capture_with_enemy_circles(self):
         my_circle = Circle(CircleCoords(5, 5), CircleTeam.White)
         my_circle_2 = Circle(CircleCoords(5, 6), CircleTeam.White)
@@ -85,4 +92,13 @@ class TestBoardCheckForLinear:
         result = board.check_for_linear(circle_line, MovingDirections.Right, CircleTeam.White, CircleTeam.Black)
 
         assert result is False
+
+    def test_check_for_linear_valid_single_my_circle_without_enemy(self):
+        my_circle = Circle(CircleCoords(5, 5), CircleTeam.White)
+        circle_line = [my_circle]
+        board = Board(circle_line)
+
+        result = board.check_for_linear(circle_line, MovingDirections.Right, CircleTeam.White, CircleTeam.Black)
+
+        assert result is True
   

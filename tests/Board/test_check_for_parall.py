@@ -6,6 +6,13 @@ from core.movement.moving_directions import MovingDirections
 
 
 class TestBoardCheckForParall:
+    def test_check_for_parall_empty_circle_list(self):
+        board = Board([])
+
+        result = board.check_for_parall([], MovingDirections.Right)
+
+        assert result is False
+
     def test_check_for_parall_valid_same_line(self):
         circles_checked = [
             Circle(CircleCoords(5, 5), CircleTeam.White),
@@ -72,3 +79,13 @@ class TestBoardCheckForParall:
         result = board.check_for_parall(circles_checked, MovingDirections.Right)
 
         assert result is False
+
+    def test_check_for_parall_valid_single_circle(self):
+        circles_checked = [
+            Circle(CircleCoords(5, 5), CircleTeam.White),
+        ]
+        board = Board(circles_checked)
+
+        result = board.check_for_parall(circles_checked, MovingDirections.UpRight)
+
+        assert result is True

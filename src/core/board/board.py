@@ -9,8 +9,6 @@ from core.geometry.delta_coords import DeltaCoords
 from core.movement.moving_directions import MovingDirections
 from core.movement.moving_types import MovingTypes
 
-#TODO: добавить в тестах на get_diagonal_limits_for_line, check_for_linear, check_for_parall проверки на пустой список и переданных фишки
-
 class Board:
     circles: List[Circle]
 
