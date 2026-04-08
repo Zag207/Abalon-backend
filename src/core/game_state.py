@@ -12,6 +12,7 @@ WINNER_SCORE = 6
 @dataclass
 class MovingResState:
     is_error: bool
+    is_win: bool
     circles_moving: List[Circle] = field(default_factory=list)
 
 class GameState:
@@ -49,8 +50,11 @@ class GameState:
             move_direction: MovingDirections,
             moving_team: CircleTeam
             ) -> MovingResState:
+        if self.is_win():
+            return MovingResState(True, True, [])
+
         if moving_team != self.get_moving_team():
-            return MovingResState(True, [])
+            return MovingResState(True, False, [])
 
         moving_res = self.board.move(circles_checked_ids, move_direction, moving_team)
 
@@ -66,4 +70,4 @@ class GameState:
                     case _:
                         pass
         
-        return MovingResState(moving_res.is_error, moving_res.circles_moving)
+        return MovingResState(moving_res.is_error, self.is_win(), moving_res.circles_moving)
