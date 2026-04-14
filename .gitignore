@@ -12,3 +12,6 @@ wheels/
 # VS Code workspace settings
 .vscode/*
 !.vscode/settings.json
+
+# diagrams
+diagrams/
