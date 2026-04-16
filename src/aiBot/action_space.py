@@ -18,9 +18,11 @@ circle_team = CircleTeam.White
 
 class ActionSpace:
     _action_space: List[ActionMove]
+    _action_space_len: int
 
     def __init__(self):
         self._action_space = []
+        self._action_space_len = 0
     
     @property
     def action_space(self) -> List[ActionMove]:
@@ -28,6 +30,13 @@ class ActionSpace:
             self._action_space = ActionSpace._gen_action_space()
         
         return self._action_space
+    
+    @property
+    def actions_count(self) -> int:
+        if self._action_space_len == 0:
+            self._action_space_len = len(self._action_space)
+        
+        return self._action_space_len
 
     @staticmethod
     def _gen_action_space() -> List[ActionMove]:
