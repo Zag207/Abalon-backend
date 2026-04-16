@@ -1,3 +1,8 @@
+from typing import Tuple
+
+import numpy as np
+import numpy.typing as npt
+
 class Game():
     """
     This class specifies the base Game class. To define your own game, subclass
@@ -11,20 +16,20 @@ class Game():
     def __init__(self):
         pass
 
-    def getInitBoard(self):
+    def getInitBoard(self) -> npt.NDArray[np.integer]:
         """
         Returns:
             startBoard: a representation of the board (ideally this is the form
                         that will be the input to your neural network)
         """
-        pass
+        raise NotImplementedError()
 
-    def getBoardSize(self):
+    def getBoardSize(self) -> Tuple[int, int]:
         """
         Returns:
             (x,y): a tuple of board dimensions
         """
-        pass
+        raise NotImplementedError()
 
     def getActionSize(self):
         """
