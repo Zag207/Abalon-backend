@@ -89,3 +89,14 @@ class TestBoardCheckForParall:
         result = board.check_for_parall(circles_checked, MovingDirections.UpRight)
 
         assert result is True
+    
+    def test_check_for_parall_invalid_circles_not_in_board(self):
+        circles = [
+            Circle(CircleCoords(1, 1), CircleTeam.White),
+            Circle(CircleCoords(0, 1), CircleTeam.White)
+        ]
+        board = Board(circles)
+
+        result = board.check_for_parall(circles, MovingDirections.Right)
+
+        assert result is False

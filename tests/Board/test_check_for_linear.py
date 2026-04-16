@@ -101,4 +101,13 @@ class TestBoardCheckForLinear:
         result = board.check_for_linear(circle_line, MovingDirections.Right, CircleTeam.White, CircleTeam.Black)
 
         assert result is True
+    
+    def test_check_for_linear_invalid_circle_not_in_board(self):
+        circle = Circle(CircleCoords(0, 0), CircleTeam.White)
+        circle_line = [circle]
+        board = Board(circle_line)
+
+        result = board.check_for_linear(circle_line, MovingDirections.Left, CircleTeam.White, CircleTeam.Black)
+
+        assert result is False
   
