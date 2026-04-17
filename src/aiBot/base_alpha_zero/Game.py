@@ -16,7 +16,7 @@ class Game():
     def __init__(self):
         pass
 
-    def getInitBoard(self) -> npt.NDArray[np.integer]:
+    def getInitBoard(self) -> npt.NDArray[np.int8]:
         """
         Returns:
             startBoard: a representation of the board (ideally this is the form
@@ -51,7 +51,7 @@ class Game():
         """
         pass
 
-    def getValidMoves(self, board, player):
+    def getValidMoves(self, board: npt.NDArray[np.int8], player: int) -> npt.NDArray[np.int8]:
         """
         Input:
             board: current board
@@ -62,9 +62,9 @@ class Game():
                         moves that are valid from the current board and player,
                         0 for invalid moves
         """
-        pass
+        raise NotImplementedError()
 
-    def getGameEnded(self, board: npt.NDArray[np.integer], player: int) -> int:
+    def getGameEnded(self, board: npt.NDArray[np.int8], player: int) -> int:
         """
         Input:
             board: current board
@@ -77,7 +77,7 @@ class Game():
         """
         raise NotImplementedError()
 
-    def getCanonicalForm(self, board: npt.NDArray[np.integer], player: int) -> npt.NDArray[np.integer]:
+    def getCanonicalForm(self, board: npt.NDArray[np.int8], player: int) -> npt.NDArray[np.int8]:
         """
         Input:
             board: current board
