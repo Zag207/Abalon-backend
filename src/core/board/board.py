@@ -167,6 +167,29 @@ class Board:
         
         return res
 
+    def get_move_validation_result(
+            self,
+            circles_checked: List[Circle],
+            move_direction: MovingDirections,
+            current_team: CircleTeam,
+            moving_type: MovingTypes
+    ) -> tuple[bool, List[Circle]]:
+        if moving_type == MovingTypes.Parall:
+            is_good_move = self.check_for_parall(circles_checked, move_direction)
+            return is_good_move, []
+
+        if moving_type == MovingTypes.Linear:
+            circle_line = self.get_circle_line(circles_checked[0], move_direction)
+            is_good_move = self.check_for_linear(
+                circle_line,
+                move_direction,
+                current_team,
+                get_enemy_team(current_team)
+            )
+            return is_good_move, circle_line
+
+        return False, []
+
     def move(
             self,
             circles_checked_ids: List[UUID],
@@ -184,7 +207,12 @@ class Board:
         increasing_score = 0
 
         if moving_type == MovingTypes.Parall:
-            is_good_move = self.check_for_parall(circles_checked, move_direction)
+            is_good_move, _ = self.get_move_validation_result(
+                circles_checked,
+                move_direction,
+                current_team,
+                moving_type
+            )
             moving_circles = []
 
             if is_good_move:
@@ -204,12 +232,11 @@ class Board:
                 circles_moving=moving_circles
             )
         elif moving_type == MovingTypes.Linear:
-            circle_line = self.get_circle_line(circles_checked[0], move_direction)
-            is_good_move = self.check_for_linear(
-                circle_line,
+            is_good_move, circle_line = self.get_move_validation_result(
+                circles_checked,
                 move_direction,
                 current_team,
-                get_enemy_team(current_team)
+                moving_type
                 )
             moving_circles = []
             
