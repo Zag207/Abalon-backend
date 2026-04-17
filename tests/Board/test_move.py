@@ -1,5 +1,3 @@
-from uuid import uuid4
-
 from core.board.board import Board
 from core.board.circle import Circle
 from core.board.circle_team import CircleTeam
@@ -7,11 +5,11 @@ from core.geometry.circle_coords import CircleCoords
 from core.movement.moving_directions import MovingDirections
 
 class TestMove:
-    def test_move_returns_error_when_checked_id_missing(self):
+    def test_move_returns_error_when_checked_circles_missing(self):
         white = Circle(CircleCoords(5, 5), CircleTeam.White)
         board = Board([white])
 
-        result = board.move([uuid4()], MovingDirections.Right, CircleTeam.White)
+        result = board.move([Circle(CircleCoords(5, 6), CircleTeam.White)], MovingDirections.Right, CircleTeam.White)
 
         assert result.is_error is True
         assert result.increasing_score == 0
@@ -23,7 +21,7 @@ class TestMove:
         board = Board([white_1, white_2])
 
         result = board.move(
-            [white_1.circle_id, white_2.circle_id],
+            [white_1, white_2],
             MovingDirections.UpRight,
             CircleTeam.White,
         )
@@ -42,7 +40,7 @@ class TestMove:
         board = Board([white_1, white_2, blocker])
 
         result = board.move(
-            [white_1.circle_id, white_2.circle_id],
+            [white_1, white_2],
             MovingDirections.UpRight,
             CircleTeam.White,
         )
@@ -60,7 +58,7 @@ class TestMove:
         black = Circle(CircleCoords(5, 7), CircleTeam.Black)
         board = Board([white_1, white_2, black])
 
-        result = board.move([white_1.circle_id], MovingDirections.Right, CircleTeam.White)
+        result = board.move([white_1], MovingDirections.Right, CircleTeam.White)
 
         assert result.is_error is False
         assert result.increasing_score == 0
@@ -75,7 +73,7 @@ class TestMove:
         black = Circle(CircleCoords(1, 9), CircleTeam.Black)
         board = Board([white_1, white_2, black])
 
-        result = board.move([white_1.circle_id], MovingDirections.Right, CircleTeam.White)
+        result = board.move([white_1], MovingDirections.Right, CircleTeam.White)
 
         assert result.is_error is False
         assert result.increasing_score == 1
@@ -90,7 +88,7 @@ class TestMove:
         black = Circle(CircleCoords(5, 6), CircleTeam.Black)
         board = Board([white, black])
 
-        result = board.move([white.circle_id], MovingDirections.Right, CircleTeam.White)
+        result = board.move([white], MovingDirections.Right, CircleTeam.White)
 
         assert result.is_error is True
         assert result.increasing_score == 0
@@ -105,7 +103,7 @@ class TestMove:
         black2 = Circle(CircleCoords(5, 5), CircleTeam.Black)
         board = Board([white1, black1, black2])
 
-        result = board.move([white1.circle_id], MovingDirections.UpRight, CircleTeam.White)
+        result = board.move([white1], MovingDirections.UpRight, CircleTeam.White)
 
         assert result.is_error is True
         assert result.increasing_score == 0
@@ -122,7 +120,7 @@ class TestMove:
         board = Board([white1, white2, black1, black2])
 
         result = board.move(
-            [white1.circle_id],
+            [white1],
             MovingDirections.UpRight,
             CircleTeam.White
             )
@@ -133,3 +131,24 @@ class TestMove:
         assert {
             (c.coords.line, c.coords.diagonal) for c in board.circles
             } == {(6, 4), (5, 5), (4, 6), (3, 7)}
+
+    def test_linear_move_valid_circle_checked_is_new(self):
+        white = Circle(CircleCoords(5, 5), CircleTeam.White)
+        board = Board([white])
+
+        result = board.move([Circle(CircleCoords(5, 5), CircleTeam.White)], MovingDirections.Right, CircleTeam.White)
+
+        assert result.is_error is False
+        assert result.increasing_score == 0
+        assert len(result.circles_moving) == 1
+    
+    def test_parall_move_valid_circle_checked_is_new(self):
+        white1 = Circle(CircleCoords(5, 5), CircleTeam.White)
+        white2 = Circle(CircleCoords(5, 6), CircleTeam.White)
+        board = Board([white1, white2])
+
+        result = board.move([Circle(CircleCoords(5, 5), CircleTeam.White), Circle(CircleCoords(5, 6), CircleTeam.White)], MovingDirections.DownRight, CircleTeam.White)
+
+        assert result.is_error is False
+        assert result.increasing_score == 0
+        assert len(result.circles_moving) == 2
