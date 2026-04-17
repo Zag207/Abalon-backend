@@ -5,7 +5,7 @@ import numpy.typing as npt
 
 from aiBot.action_space import ActionSpace
 from aiBot.base_alpha_zero.Game import Game
-from aiBot.game_state_utils import get_board_from_matrix_board, get_circles_by_coords, get_team_code, get_team_from_code
+from aiBot.game_state_utils import get_board_from_matrix_board, get_team_code, get_team_from_code
 from core.board.board import Board
 from core.board.circle import Circle
 from core.setup.prepare_circles import fill_circle_board
