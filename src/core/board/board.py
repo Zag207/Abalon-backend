@@ -190,19 +190,18 @@ class Board:
 
         return False, []
 
+    def get_circles_by_ids(self, circles_ids: List[UUID]) -> List[Circle]:
+        return [circle for circle in self.circles if circle.circle_id in circles_ids]
+
     def move(
             self,
-            circles_checked_ids: List[UUID],
+            circles_checked: List[Circle],
             move_direction: MovingDirections,
             current_team: CircleTeam
     ) -> MoveResult:
-        circles_ids = {circle.circle_id for circle in self.circles}
-        missing_ids = [cid for cid in circles_checked_ids if cid not in circles_ids]
-
-        if len(missing_ids) != 0:
+        if any(circle not in self.circles for circle in circles_checked):
             return MoveResult(is_error=True)
         
-        circles_checked = list(filter(lambda c: c.circle_id in circles_checked_ids, self.circles)) # Можно оптимизировать: сделать индексацию по id и получить сразу по id, не производя каждый раз поиск
         moving_type = self.get_moving_type(len(circles_checked))
         increasing_score = 0
 
@@ -216,6 +215,8 @@ class Board:
             moving_circles = []
 
             if is_good_move:
+                circles_checked_ids = [circle.circle_id for circle in circles_checked]
+
                 self.circles = list(map(
                     lambda c: update_circle_move_parall(
                         c,
