@@ -56,7 +56,12 @@ class GameState:
         if moving_team != self.get_moving_team():
             return MovingResState(True, False, [])
 
-        moving_res = self.board.move(circles_checked_ids, move_direction, moving_team)
+        checked_circles = self.board.get_circles_by_ids(circles_checked_ids)
+
+        if len(checked_circles) != len(circles_checked_ids):
+            return MovingResState(True, False, [])
+
+        moving_res = self.board.move(checked_circles, move_direction, moving_team)
 
         if not moving_res.is_error:
             self.curr_team = moving_team
