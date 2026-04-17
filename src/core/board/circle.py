@@ -17,6 +17,12 @@ class Circle:
         self.coords = coords
         self.circle_id = uuid.uuid6()
         self.circle_type = circle_type
+    
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Circle):
+            return NotImplemented
+        
+        return self.circle_type == other.circle_type and self.coords == other.coords
 
     def update_coords(self, deltaCoords: DeltaCoords) -> None:
         self.coords = self.coords.get_new_coords(deltaCoords)
