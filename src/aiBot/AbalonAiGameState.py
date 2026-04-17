@@ -4,8 +4,11 @@ import numpy as np
 import numpy.typing as npt
 
 from aiBot.action_space import ActionSpace
-from base_alpha_zero.Game import Game
+from aiBot.base_alpha_zero.Game import Game
+from aiBot.game_state_utils import get_team_code
+from core.setup.prepare_circles import fill_circle_board
 
+#TODO: Сделать автоперевод игровой доски в формат alpha-zero - массив numpy
 
 class AbalonAiGameState(Game):
     action_space: ActionSpace
@@ -22,25 +25,24 @@ class AbalonAiGameState(Game):
         #  0  - пустая валидная клетка
         #  2  - несуществующая (вне гекса), если храните доску как 9x9
         n = 9
-        board = 2 * np.ones((n, n), dtype=np.int8)
+        board = 0 * np.ones((n, n), dtype=np.int8)
 
-        # Кол-во валидных клеток в строках гекса
-        row_lens = [5, 6, 7, 8, 9, 8, 7, 6, 5]
+        offset = 4
+        for i in range(0, 4):
+            board[:offset, i] = 2
+            offset -= 1
+        
+        offset = 1
+        for i in range(5, 9):
+            board[(9 - offset):, i] = 2
+            offset += 1
 
-        for r, ln in enumerate(row_lens):
-            start = (n - ln) // 2
-            board[r, start:start + ln] = 0
 
-        # Классическая стартовая расстановка (14 на 14)
-        # Верх (белые)
-        board[0, 2:7] = 1          # 5
-        board[1, 1:7] = 1          # 6
-        board[2, 3:6] = 1          # 3
+        for circle in fill_circle_board():
+            coords = circle.coords
+            circle_team = circle.circle_type
 
-        # Низ (чёрные)
-        board[8, 2:7] = -1           # 5
-        board[7, 1:7] = -1           # 6
-        board[6, 3:6] = -1           # 3
+            board[coords.line - 1, coords.diagonal - 1] = get_team_code(circle_team)
 
         return board
     

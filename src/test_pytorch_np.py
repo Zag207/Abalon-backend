@@ -1,8 +1,8 @@
 import torch
 import numpy as np
 
-from AbalonAiGameState import AbalonAiGameState
-from network_utils import board_to_three_masks
+from aiBot.AbalonAiGameState import AbalonAiGameState
+from aiBot.network_utils import board_to_three_masks
 
 x = torch.rand(5, 3)
 y = np.zeros((2, 3))
@@ -11,6 +11,7 @@ print(x)
 print(y)
 
 test_game = AbalonAiGameState()
+print(test_game.getInitBoard())
 print(board_to_three_masks(test_game.getInitBoard()))
 
 
