@@ -157,7 +157,8 @@ class Board:
 
         return res
 
-    def get_moving_type(self, circles_checked_count: int) -> MovingTypes:
+    @staticmethod
+    def get_moving_type(circles_checked_count: int) -> MovingTypes:
         res = MovingTypes.NoMove
 
         if circles_checked_count == 1:
