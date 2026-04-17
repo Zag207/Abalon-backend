@@ -119,11 +119,13 @@ class ActionSpace:
         """
 
         actions = []
-
-        # Можно оптимизировать, если не проверять направления, вдоль которых расположена линия
+        skip_directions = ActionSpace._get_skip_directions_for_group(circles_checked)
         
         for moving in MovingDirections:
             if moving == MovingDirections.NoMove:
+                continue
+
+            if moving in skip_directions:
                 continue
             
             circles_checked_copy = deepcopy(circles_checked)
@@ -134,4 +136,27 @@ class ActionSpace:
                 actions.append(ActionMove([copy(circle.coords) for circle in circles_checked], moving))
         
         return actions
+
+    @staticmethod
+    def _get_skip_directions_for_group(circles_checked: List[Circle]) -> set[MovingDirections]:
+        """
+        Для группы из 2+ фишек возвращает направления вдоль оси линии.
+        Для параллельного перемещения такие направления заведомо бесполезны.
+        """
+        if len(circles_checked) <= 1:
+            return set()
+
+        lines = [circle.coords.line for circle in circles_checked]
+        diagonals = [circle.coords.diagonal for circle in circles_checked]
+
+        is_one_line = len(set(lines)) == 1
+        is_one_diagonal = len(set(diagonals)) == 1
+
+        if is_one_line:
+            return {MovingDirections.Left, MovingDirections.Right}
+
+        if is_one_diagonal:
+            return {MovingDirections.UpLeft, MovingDirections.DownRight}
+
+        return {MovingDirections.UpRight, MovingDirections.DownLeft}
 
