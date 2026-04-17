@@ -1,6 +1,7 @@
 from typing import Tuple
 
 import numpy as np
+from numpy._typing import NDArray
 import numpy.typing as npt
 
 from aiBot.action_space import ActionSpace
@@ -96,4 +97,7 @@ class AbalonAiGameState(Game):
 
         
         return valid_moves_mask
+    
+    def stringRepresentation(self, board: npt.NDArray) -> str:
+        return str(board)
             

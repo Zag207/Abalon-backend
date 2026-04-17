@@ -106,7 +106,7 @@ class Game():
         """
         pass
 
-    def stringRepresentation(self, board):
+    def stringRepresentation(self, board: npt.NDArray) -> str:
         """
         Input:
             board: current board
@@ -115,4 +115,4 @@ class Game():
             boardString: a quick conversion of board to a string format.
                          Required by MCTS for hashing.
         """
-        pass
+        raise NotImplementedError

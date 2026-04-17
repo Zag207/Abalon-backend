@@ -17,6 +17,7 @@ print(test_game.getInitBoard())
 board = get_board_from_matrix_board(init_board)
 print(board_to_three_masks(test_game.getInitBoard()))
 
+print(test_game.stringRepresentation(init_board))
 
 device = torch.accelerator.current_accelerator().type if torch.accelerator.is_available() else "cpu" # type: ignore
 print(f"Using {device} device")
