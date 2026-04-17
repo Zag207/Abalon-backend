@@ -135,7 +135,7 @@ class ActionSpace:
             
             circles_checked_copy = deepcopy(circles_checked)
             board = Board(circles_checked_copy)
-            moving_res = board.move([circle.circle_id for circle in circles_checked_copy], moving, circle_team)
+            moving_res = board.move([circle for circle in circles_checked_copy], moving, circle_team)
 
             if not moving_res.is_error:
                 actions.append(ActionMove([copy(circle.coords) for circle in circles_checked], moving))
