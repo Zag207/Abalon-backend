@@ -3,10 +3,18 @@ from typing import Tuple
 import numpy as np
 import numpy.typing as npt
 
+from aiBot.action_space import ActionSpace
 from base_alpha_zero.Game import Game
 
 
 class AbalonAiGameState(Game):
+    action_space: ActionSpace
+
+    def __init__(self):
+        super().__init__()
+
+        self.action_space = ActionSpace()
+
     def getInitBoard(self) -> npt.NDArray[np.integer]:
         # Коды:
         #  1  - белая фишка
@@ -38,3 +46,29 @@ class AbalonAiGameState(Game):
     
     def getBoardSize(self) -> Tuple[int, int]:
         return (14, 14)
+    
+    def getActionSize(self) -> int:
+        return self.action_space.actions_count
+    
+    def getGameEnded(self, board: npt.NDArray[np.integer], player: int) -> int:
+        is_white_won = (14 - np.count_nonzero(board == 1)) >= 6
+        is_black_won = (14 - np.count_nonzero(board == -1)) >= 6
+
+        if (is_white_won and player == 1) or \
+            (is_black_won and player == -1):
+            return 1
+        elif is_white_won or is_black_won == 0:
+            return 0
+        else:
+            return -1
+    
+    def getCanonicalForm(self, board: npt.NDArray[np.integer], player: int) -> npt.NDArray[np.integer]:
+        if player == -1:
+            new_board = np.where(board == -1, 20, board)
+            new_board[new_board == 1] = -1
+            new_board[new_board == 20] = 1
+            return new_board
+
+        return board.copy() 
+
+            

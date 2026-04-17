@@ -31,12 +31,12 @@ class Game():
         """
         raise NotImplementedError()
 
-    def getActionSize(self):
+    def getActionSize(self) -> int:
         """
         Returns:
             actionSize: number of all possible actions
         """
-        pass
+        raise NotImplementedError()
 
     def getNextState(self, board, player, action):
         """
@@ -64,7 +64,7 @@ class Game():
         """
         pass
 
-    def getGameEnded(self, board, player):
+    def getGameEnded(self, board: npt.NDArray[np.integer], player: int) -> int:
         """
         Input:
             board: current board
@@ -75,9 +75,9 @@ class Game():
                small non-zero value for draw.
                
         """
-        pass
+        raise NotImplementedError()
 
-    def getCanonicalForm(self, board, player):
+    def getCanonicalForm(self, board: npt.NDArray[np.integer], player: int) -> npt.NDArray[np.integer]:
         """
         Input:
             board: current board
@@ -91,7 +91,7 @@ class Game():
                             board as is. When the player is black, we can invert
                             the colors and return the board.
         """
-        pass
+        raise NotImplementedError()
 
     def getSymmetries(self, board, pi):
         """
