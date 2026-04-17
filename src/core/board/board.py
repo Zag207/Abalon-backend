@@ -204,6 +204,7 @@ class Board:
         
         moving_type = self.get_moving_type(len(circles_checked))
         increasing_score = 0
+        circles_checked = [circle for circle in self.circles if circle in circles_checked]
 
         if moving_type == MovingTypes.Parall:
             is_good_move, _ = self.get_move_validation_result(
