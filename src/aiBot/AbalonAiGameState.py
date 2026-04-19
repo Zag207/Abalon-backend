@@ -233,11 +233,10 @@ class AbalonAiGameState(Game):
             matrix[(9 - offset):, i] = 2
             offset += 1
 
-
-        for circle in fill_circle_board():
+        # Place circles from the given board state
+        for circle in board.board.circles:
             coords = circle.coords
             circle_team = circle.circle_type
-
             matrix[coords.line - 1, coords.diagonal - 1] = get_team_code(circle_team)
 
         return board_to_three_masks(matrix)
