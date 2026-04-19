@@ -1,3 +1,11 @@
+from typing import Tuple
+
+import numpy as np
+import numpy.typing as npt
+
+from core.game_state import GameState
+
+
 class Game():
     """
     This class specifies the base Game class. To define your own game, subclass
@@ -11,20 +19,20 @@ class Game():
     def __init__(self):
         pass
 
-    def getInitBoard(self):
+    def getInitBoard(self) -> GameState:
         """
         Returns:
             startBoard: a representation of the board (ideally this is the form
                         that will be the input to your neural network)
         """
-        pass
+        raise NotImplementedError()
 
-    def getBoardSize(self):
+    def getBoardSize(self) -> Tuple[int, int]:
         """
         Returns:
             (x,y): a tuple of board dimensions
         """
-        pass
+        raise NotImplementedError()
 
     def getActionSize(self):
         """
@@ -33,7 +41,7 @@ class Game():
         """
         raise NotImplementedError()
 
-    def getNextState(self, board, player, action):
+    def getNextState(self, board: GameState, player: int, action: int) -> Tuple[GameState, int]:
         """
         Input:
             board: current board
@@ -44,9 +52,9 @@ class Game():
             nextBoard: board after applying action
             nextPlayer: player who plays in the next turn (should be -player)
         """
-        pass
+        raise NotImplementedError()
 
-    def getValidMoves(self, board, player):
+    def getValidMoves(self, board: GameState, player: int) -> npt.NDArray[np.int8]:
         """
         Input:
             board: current board
@@ -57,9 +65,9 @@ class Game():
                         moves that are valid from the current board and player,
                         0 for invalid moves
         """
-        pass
+        raise NotImplementedError()
 
-    def getGameEnded(self, board, player):
+    def getGameEnded(self, board: GameState, player: int) -> int:
         """
         Input:
             board: current board
@@ -70,9 +78,9 @@ class Game():
                small non-zero value for draw.
                
         """
-        pass
+        raise NotImplementedError()
 
-    def getCanonicalForm(self, board, player):
+    def getCanonicalForm(self, board: GameState, player: int) -> GameState:
         """
         Input:
             board: current board
@@ -86,9 +94,9 @@ class Game():
                             board as is. When the player is black, we can invert
                             the colors and return the board.
         """
-        pass
+        raise NotImplementedError()
 
-    def getSymmetries(self, board, pi):
+    def getSymmetries(self, board: GameState, pi) -> list[tuple[GameState, npt.NDArray[np.float32]]]:
         """
         Input:
             board: current board
@@ -99,9 +107,9 @@ class Game():
                        form of the board and the corresponding pi vector. This
                        is used when training the neural network from examples.
         """
-        pass
+        raise NotImplementedError()
 
-    def stringRepresentation(self, board):
+    def stringRepresentation(self, board: GameState) -> str:
         """
         Input:
             board: current board
@@ -110,4 +118,4 @@ class Game():
             boardString: a quick conversion of board to a string format.
                          Required by MCTS for hashing.
         """
-        pass
+        raise NotImplementedError()
