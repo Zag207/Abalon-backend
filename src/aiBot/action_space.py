@@ -32,7 +32,7 @@ class ActionSpace:
         return self._action_space
     
     def __getitem__(self, index: int) -> ActionMove | None:
-        if index < 0 and index >= self.actions_count:
+        if index < 0 or index >= self.actions_count:
             return None
         return self.action_space[index]
     

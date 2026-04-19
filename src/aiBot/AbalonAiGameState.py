@@ -4,10 +4,10 @@ from typing import Tuple
 import numpy as np
 import numpy.typing as npt
 
-from aiBot.action_space import ActionSpace
-from aiBot.base_alpha_zero.Game import Game
-from aiBot.game_state_utils import get_team_code, get_team_from_code
-from aiBot.network_utils import board_to_three_masks
+from action_space import ActionSpace
+from base_alpha_zero.Game import Game
+from game_state_utils import get_team_code, get_team_from_code
+from network_utils import board_to_three_masks
 from core.board.board import Board
 from core.board.circle import Circle
 from core.board.circle_team import CircleTeam
