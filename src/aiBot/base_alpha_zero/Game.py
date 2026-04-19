@@ -1,8 +1,3 @@
-from typing import Tuple
-
-import numpy as np
-import numpy.typing as npt
-
 class Game():
     """
     This class specifies the base Game class. To define your own game, subclass
@@ -16,22 +11,22 @@ class Game():
     def __init__(self):
         pass
 
-    def getInitBoard(self) -> npt.NDArray[np.int8]:
+    def getInitBoard(self):
         """
         Returns:
             startBoard: a representation of the board (ideally this is the form
                         that will be the input to your neural network)
         """
-        raise NotImplementedError()
+        pass
 
-    def getBoardSize(self) -> Tuple[int, int]:
+    def getBoardSize(self):
         """
         Returns:
             (x,y): a tuple of board dimensions
         """
-        raise NotImplementedError()
+        pass
 
-    def getActionSize(self) -> int:
+    def getActionSize(self):
         """
         Returns:
             actionSize: number of all possible actions
@@ -51,7 +46,7 @@ class Game():
         """
         pass
 
-    def getValidMoves(self, board: npt.NDArray[np.int8], player: int) -> npt.NDArray[np.int8]:
+    def getValidMoves(self, board, player):
         """
         Input:
             board: current board
@@ -62,9 +57,9 @@ class Game():
                         moves that are valid from the current board and player,
                         0 for invalid moves
         """
-        raise NotImplementedError()
+        pass
 
-    def getGameEnded(self, board: npt.NDArray[np.int8], player: int) -> int:
+    def getGameEnded(self, board, player):
         """
         Input:
             board: current board
@@ -75,9 +70,9 @@ class Game():
                small non-zero value for draw.
                
         """
-        raise NotImplementedError()
+        pass
 
-    def getCanonicalForm(self, board: npt.NDArray[np.int8], player: int) -> npt.NDArray[np.int8]:
+    def getCanonicalForm(self, board, player):
         """
         Input:
             board: current board
@@ -91,7 +86,7 @@ class Game():
                             board as is. When the player is black, we can invert
                             the colors and return the board.
         """
-        raise NotImplementedError()
+        pass
 
     def getSymmetries(self, board, pi):
         """
@@ -106,7 +101,7 @@ class Game():
         """
         pass
 
-    def stringRepresentation(self, board: npt.NDArray) -> str:
+    def stringRepresentation(self, board):
         """
         Input:
             board: current board
@@ -115,4 +110,4 @@ class Game():
             boardString: a quick conversion of board to a string format.
                          Required by MCTS for hashing.
         """
-        raise NotImplementedError
+        pass
