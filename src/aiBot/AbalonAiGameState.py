@@ -6,7 +6,8 @@ import numpy.typing as npt
 
 from aiBot.action_space import ActionSpace
 from aiBot.base_alpha_zero.Game import Game
-from aiBot.game_state_utils import get_team_from_code
+from aiBot.game_state_utils import get_team_code, get_team_from_code
+from aiBot.network_utils import board_to_three_masks
 from core.board.board import Board
 from core.board.circle import Circle
 from core.board.circle_team import CircleTeam
@@ -217,6 +218,29 @@ class AbalonAiGameState(Game):
 
         return symmetries
 
+
+    def toNetworkInput(self, board: GameState) -> npt.NDArray[np.float32]:
+        matrix = np.zeros((9, 9), dtype=np.int8)
+
+        # Mark forbidden hexes (outside the hex grid)
+        offset = 4
+        for i in range(0, 4):
+            matrix[:offset, i] = 2
+            offset -= 1
+        
+        offset = 1
+        for i in range(5, 9):
+            matrix[(9 - offset):, i] = 2
+            offset += 1
+
+
+        for circle in fill_circle_board():
+            coords = circle.coords
+            circle_team = circle.circle_type
+
+            matrix[coords.line - 1, coords.diagonal - 1] = get_team_code(circle_team)
+
+        return board_to_three_masks(matrix)
 
     def stringRepresentation(self, board: GameState) -> str:
         circles_repr = sorted(

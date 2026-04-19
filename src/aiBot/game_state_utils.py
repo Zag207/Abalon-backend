@@ -38,33 +38,5 @@ def get_board_from_matrix_board(matrix_board: npt.NDArray[np.int8]) -> Board:
 
     return Board(circles)
 
-def get_matrix_from_board(board: GameState) -> npt.NDArray[np.int8]:
-        # Коды:
-        #  1  - белая фишка
-        # -1  - черная фишка
-        #  0  - пустая валидная клетка
-        #  2  - несуществующая (вне гекса), если храните доску как 9x9
-        n = 9
-        board_matrix = 0 * np.ones((n, n), dtype=np.int8)
-
-        offset = 4
-        for i in range(0, 4):
-            board_matrix[:offset, i] = 2
-            offset -= 1
-        
-        offset = 1
-        for i in range(5, 9):
-            board_matrix[(9 - offset):, i] = 2
-            offset += 1
-
-
-        for circle in fill_circle_board():
-            coords = circle.coords
-            circle_team = circle.circle_type
-
-            board_matrix[coords.line - 1, coords.diagonal - 1] = get_team_code(circle_team)
-
-        return board_matrix
-
 def get_circles_by_coords(board: Board, circle_coords: List[CircleCoords]) -> List[Circle]:
     return [circle for circle in board.circles if circle.coords in circle_coords]

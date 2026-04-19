@@ -109,6 +109,18 @@ class Game():
         """
         raise NotImplementedError()
 
+    def toNetworkInput(self, board: GameState) -> npt.NDArray[np.float32]:
+        """
+        Convert game state to neural network input (matrix).
+
+        Input:
+            board: current board (GameState or equivalent)
+
+        Returns:
+            networkInput: numpy array suitable for neural network prediction
+        """
+        raise NotImplementedError()
+
     def stringRepresentation(self, board: GameState) -> str:
         """
         Input:
