@@ -1,4 +1,3 @@
-from copy import deepcopy
 from typing import Tuple
 
 import numpy as np
@@ -143,7 +142,7 @@ class AbalonAiGameState(Game):
     
     def getCanonicalForm(self, board: GameState, player: int) -> GameState:
         curr_team = get_team_from_code(player)
-        board_new = deepcopy(board)
+        board_new = board.clone()
 
         if curr_team == CircleTeam.White:
             return board_new
@@ -179,7 +178,7 @@ class AbalonAiGameState(Game):
     
     def getNextState(self, board: GameState, player: int, action: int) -> Tuple[GameState, int]:
         curr_player = get_team_from_code(player)
-        new_state = deepcopy(board)
+        new_state = board.clone()
 
         action_obj = self.action_space[action]
 
@@ -200,23 +199,25 @@ class AbalonAiGameState(Game):
                 f"pi size mismatch: expected {self.getActionSize()}, got {pi_array.shape[0]}"
             )
 
-        symmetries: list[tuple[GameState, npt.NDArray[np.float32]]] = []
-        operations = [(rotation, False) for rotation in range(6)] + [(rotation, True) for rotation in range(6)]
+        # symmetries: list[tuple[GameState, npt.NDArray[np.float32]]] = []
+        # operations = [(rotation, False) for rotation in range(6)] + [(rotation, True) for rotation in range(6)]
 
-        for rotation, reflect in operations:
-            transformed_state = self._transform_state(board, rotation, reflect)
-            transformed_pi = np.zeros(self.getActionSize(), dtype=np.float32)
+        # for rotation, reflect in operations:
+        #     transformed_state = self._transform_state(board, rotation, reflect)
+        #     transformed_pi = np.zeros(self.getActionSize(), dtype=np.float32)
 
-            for action_index, prob in enumerate(pi_array):
-                if prob == 0:
-                    continue
+        #     for action_index, prob in enumerate(pi_array):
+        #         if prob == 0:
+        #             continue
 
-                mapped_index = self._transform_action(action_index, rotation, reflect)
-                transformed_pi[mapped_index] += prob
+        #         mapped_index = self._transform_action(action_index, rotation, reflect)
+        #         transformed_pi[mapped_index] += prob
 
-            symmetries.append((transformed_state, transformed_pi))
+        #     symmetries.append((transformed_state, transformed_pi))
 
-        return symmetries
+        # return symmetries
+
+        return [(board, pi_array)]
 
 
     def toNetworkInput(self, board: GameState) -> npt.NDArray[np.float32]:

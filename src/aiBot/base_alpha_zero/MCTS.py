@@ -7,6 +7,7 @@ EPS = 1e-8
 
 log = logging.getLogger(__name__)
 
+prev_s = ""
 
 class MCTS():
     """
@@ -24,6 +25,7 @@ class MCTS():
 
         self.Es = {}  # stores game.getGameEnded ended for board s
         self.Vs = {}  # stores game.getValidMoves for board s
+        self.valid_moves_cache = {}  # cache valid moves globally to avoid recomputation
 
     def getActionProb(self, canonicalBoard, temp=1):
         """
@@ -35,7 +37,8 @@ class MCTS():
                    proportional to Nsa[(s,a)]**(1./temp)
         """
         for i in range(self.args.numMCTSSims):
-            self.search(canonicalBoard)
+            # log.info(f"MCTS iteration: {i}")
+            self.search(canonicalBoard, visited_states=set())
 
         s = self.game.stringRepresentation(canonicalBoard)
         counts = [self.Nsa[(s, a)] if (s, a) in self.Nsa else 0 for a in range(self.game.getActionSize())]
@@ -52,7 +55,7 @@ class MCTS():
         probs = [x / counts_sum for x in counts]
         return probs
 
-    def search(self, canonicalBoard):
+    def search(self, canonicalBoard, visited_states=None, depth=0, max_depth=1000):
         """
         This function performs one iteration of MCTS. It is recursively called
         till a leaf node is found. The action chosen at each node is one that
@@ -72,7 +75,21 @@ class MCTS():
             v: the negative of the value of the current canonicalBoard
         """
 
+        if visited_states is None:
+            visited_states = set()
+
+        # Защита от циклов и слишком глубокого поиска
         s = self.game.stringRepresentation(canonicalBoard)
+        
+        if depth > max_depth:
+            # log.warning(f"Max depth {max_depth} reached, returning 0")
+            return 0
+        
+        if s in visited_states:
+            # log.warning(f"Cycle detected at depth {depth}, state was already visited")
+            return 0
+        
+        visited_states.add(s)
 
         if s not in self.Es:
             self.Es[s] = self.game.getGameEnded(canonicalBoard, 1)
@@ -84,7 +101,10 @@ class MCTS():
             # leaf node
             networkInput = self.game.toNetworkInput(canonicalBoard)
             self.Ps[s], v = self.nnet.predict(networkInput)
-            valids = self.game.getValidMoves(canonicalBoard, 1)
+            # Use cached valid moves or compute and cache
+            if s not in self.valid_moves_cache:
+                self.valid_moves_cache[s] = self.game.getValidMoves(canonicalBoard, 1)
+            valids = self.valid_moves_cache[s]
             self.Ps[s] = self.Ps[s] * valids  # masking invalid moves
             sum_Ps_s = np.sum(self.Ps[s])
             if sum_Ps_s > 0:
@@ -102,7 +122,13 @@ class MCTS():
             self.Ns[s] = 0
             return -v
 
-        valids = self.Vs[s]
+        # For internal nodes, use cache (should always be present if we visited this node)
+        valids = self.valid_moves_cache.get(s)
+        if valids is None:
+            # Fallback: recompute if not in cache (shouldn't normally happen)
+            valids = self.game.getValidMoves(canonicalBoard, 1)
+            self.valid_moves_cache[s] = valids
+        
         cur_best = -float('inf')
         best_act = -1
 
@@ -119,11 +145,20 @@ class MCTS():
                     cur_best = u
                     best_act = a
 
+        # log.info(f"Best act: {best_act}")
+
         a = best_act
+        
+        # Дополнительная защита: если нет валидных ходов, вернуть 0
+        if a == -1:
+            log.error(f"No valid moves found at depth {depth}")
+            return 0
+
         next_s, next_player = self.game.getNextState(canonicalBoard, 1, a)
         next_s = self.game.getCanonicalForm(next_s, next_player)
 
-        v = self.search(next_s)
+        # log.info("БЛЯТЬ")
+        v = self.search(next_s, visited_states=visited_states, depth=depth+1, max_depth=max_depth)
 
         if (s, a) in self.Qsa:
             self.Qsa[(s, a)] = (self.Nsa[(s, a)] * self.Qsa[(s, a)] + v) / (self.Nsa[(s, a)] + 1)

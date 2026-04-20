@@ -14,6 +14,12 @@ class Board:
 
     def __init__(self, circles: List[Circle]) -> None:
         self.circles = circles
+
+    def clone(self) -> "Board":
+        return Board([
+            Circle(CircleCoords(circle.coords.line, circle.coords.diagonal), circle.circle_type)
+            for circle in self.circles
+        ])
     
     def is_hex_empty(self, hex_coords: CircleCoords) -> bool:
         return not any(circle.coords == hex_coords for circle in self.circles)

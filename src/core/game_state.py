@@ -5,6 +5,7 @@ from uuid import UUID
 from core.board.board import Board
 from core.board.circle import Circle
 from core.board.circle_team import CircleTeam, get_enemy_team
+from core.geometry.circle_coords import CircleCoords
 from core.movement.moving_directions import MovingDirections
 
 WINNER_SCORE = 6
@@ -26,6 +27,16 @@ class GameState:
         self.curr_team = CircleTeam.White
         self.score_black = 0
         self.score_white = 0
+
+    def clone(self) -> "GameState":
+        cloned_state = GameState([
+            Circle(CircleCoords(circle.coords.line, circle.coords.diagonal), circle.circle_type)
+            for circle in self.board.circles
+        ])
+        cloned_state.curr_team = self.curr_team
+        cloned_state.score_black = self.score_black
+        cloned_state.score_white = self.score_white
+        return cloned_state
     
     def get_winner_team(self) -> CircleTeam | None:
         if self.score_black >= WINNER_SCORE:
