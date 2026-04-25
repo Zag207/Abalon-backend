@@ -69,10 +69,6 @@ class Coach():
 
             r = self.game.getGameEnded(board, self.curPlayer)
 
-            if r != 0:
-                log.warning("Эпизод self-play закончен")
-                sys.exit(0)  # завершить программу с кодом 0 (успешно)
-
             log.error(f"Шаг эпизода: {episodeStep}")
 
             if r != 0:
