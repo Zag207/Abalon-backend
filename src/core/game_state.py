@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+import logging
 from typing import List
 from uuid import UUID
 
@@ -9,6 +10,11 @@ from core.geometry.circle_coords import CircleCoords
 from core.movement.moving_directions import MovingDirections
 
 WINNER_SCORE = 6
+
+log = logging.getLogger(__name__)
+
+file_handler = logging.FileHandler('app2.log')
+log.addHandler(file_handler)
 
 @dataclass
 class MovingResState:
@@ -47,6 +53,8 @@ class GameState:
             return None
     
     def is_win(self) -> bool:
+        log.info(f"Checking win condition. Black: {self.score_black}, White: {self.score_white}")
+
         return self.score_black >= WINNER_SCORE or self.score_white >= WINNER_SCORE
     
     def get_moving_team(self) -> CircleTeam:

@@ -13,6 +13,8 @@ from .MCTS import MCTS
 
 log = logging.getLogger(__name__)
 
+file_handler = logging.FileHandler('app2.log')
+log.addHandler(file_handler)
 
 class Coach():
     """
@@ -50,6 +52,8 @@ class Coach():
         self.curPlayer = 1
         episodeStep = 0
 
+        log.warning("Эпизод self-play начался")
+
         while True:
             episodeStep += 1
             canonicalBoard = self.game.getCanonicalForm(board, self.curPlayer)
@@ -66,6 +70,14 @@ class Coach():
             r = self.game.getGameEnded(board, self.curPlayer)
 
             if r != 0:
+                log.warning("Эпизод self-play закончен")
+                sys.exit(0)  # завершить программу с кодом 0 (успешно)
+
+            log.error(f"Шаг эпизода: {episodeStep}")
+
+            if r != 0:
+                log.warning("Эпизод self-play закончен")
+
                 return [(x[0], x[2], r * ((-1) ** (x[1] != self.curPlayer))) for x in trainExamples]
 
     def learn(self):

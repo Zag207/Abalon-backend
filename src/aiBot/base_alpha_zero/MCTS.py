@@ -7,6 +7,9 @@ EPS = 1e-8
 
 log = logging.getLogger(__name__)
 
+file_handler = logging.FileHandler('app2.log')
+log.addHandler(file_handler)
+
 prev_s = ""
 
 class MCTS():
@@ -37,22 +40,30 @@ class MCTS():
                    proportional to Nsa[(s,a)]**(1./temp)
         """
         for i in range(self.args.numMCTSSims):
-            # log.info(f"MCTS iteration: {i}")
+            log.info(f"MCTS iteration: {i}")
             self.search(canonicalBoard, visited_states=set())
 
         s = self.game.stringRepresentation(canonicalBoard)
         counts = [self.Nsa[(s, a)] if (s, a) in self.Nsa else 0 for a in range(self.game.getActionSize())]
+
+        log.error("После симуляции")
 
         if temp == 0:
             bestAs = np.array(np.argwhere(counts == np.max(counts))).flatten()
             bestA = np.random.choice(bestAs)
             probs = [0] * len(counts)
             probs[bestA] = 1
+
+            log.error(f"Получены вероятности 0")
+
             return probs
 
         counts = [x ** (1. / temp) for x in counts]
         counts_sum = float(sum(counts))
         probs = [x / counts_sum for x in counts]
+
+        log.error(f"Получены вероятности 1")
+
         return probs
 
     def search(self, canonicalBoard, visited_states=None, depth=0, max_depth=1000):
@@ -81,9 +92,9 @@ class MCTS():
         # Защита от циклов и слишком глубокого поиска
         s = self.game.stringRepresentation(canonicalBoard)
         
-        if depth > max_depth:
-            # log.warning(f"Max depth {max_depth} reached, returning 0")
-            return 0
+        # if depth > max_depth:
+        #     # log.warning(f"Max depth {max_depth} reached, returning 0")
+        #     return 0
         
         if s in visited_states:
             # log.warning(f"Cycle detected at depth {depth}, state was already visited")
@@ -100,7 +111,13 @@ class MCTS():
         if s not in self.Ps:
             # leaf node
             networkInput = self.game.toNetworkInput(canonicalBoard)
+
+            log.warning("Нейросеть начала работу")
+
             self.Ps[s], v = self.nnet.predict(networkInput)
+
+            log.warning("Нейросеть отработала")
+
             # Use cached valid moves or compute and cache
             if s not in self.valid_moves_cache:
                 self.valid_moves_cache[s] = self.game.getValidMoves(canonicalBoard, 1)
@@ -158,7 +175,7 @@ class MCTS():
         next_s = self.game.getCanonicalForm(next_s, next_player)
 
         # log.info("БЛЯТЬ")
-        v = self.search(next_s, visited_states=visited_states, depth=depth+1, max_depth=max_depth)
+        v = self.search(next_s, visited_states=visited_states)#, depth=depth+1, max_depth=max_depth)
 
         if (s, a) in self.Qsa:
             self.Qsa[(s, a)] = (self.Nsa[(s, a)] * self.Qsa[(s, a)] + v) / (self.Nsa[(s, a)] + 1)

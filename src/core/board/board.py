@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+import logging
 from typing import List
 from uuid import UUID
 from core.board.circle import Circle
@@ -8,6 +9,11 @@ from core.geometry.circle_coords import CircleCoords
 from core.geometry.delta_coords import DeltaCoords
 from core.movement.moving_directions import MovingDirections
 from core.movement.moving_types import MovingTypes
+
+log = logging.getLogger(__name__)
+
+file_handler = logging.FileHandler('app2.log')
+log.addHandler(file_handler)
 
 class Board:
     circles: List[Circle]
@@ -222,6 +228,9 @@ class Board:
             )
             moving_circles = []
 
+            if not is_good_move:
+                log.error("Ошибочный ход")
+
             if is_good_move:
                 circles_checked_ids = [circle.circle_id for circle in circles_checked]
 
@@ -247,6 +256,10 @@ class Board:
                 current_team,
                 moving_type
                 )
+            
+            if not is_good_move:
+                log.error("Ошибочный ход")
+
             moving_circles = []
             
             if is_good_move:
@@ -268,6 +281,7 @@ class Board:
                         new_circles.append(updated_circle)
 
                 self.circles = new_circles # присваиваю новый массив, так как фишки могут удаляться
+
 
             return MoveResult(
                 is_error=not is_good_move,

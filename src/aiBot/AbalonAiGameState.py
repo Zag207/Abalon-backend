@@ -1,3 +1,4 @@
+import logging
 from typing import Tuple
 
 import numpy as np
@@ -14,6 +15,11 @@ from core.geometry.circle_coords import CircleCoords
 from core.game_state import GameState
 from core.movement.moving_directions import MovingDirections
 from core.setup.prepare_circles import fill_circle_board
+
+log = logging.getLogger(__name__)
+
+file_handler = logging.FileHandler('app2.log')
+log.addHandler(file_handler)
 
 class AbalonAiGameState(Game):
     action_space: ActionSpace
@@ -178,6 +184,9 @@ class AbalonAiGameState(Game):
     
     def getNextState(self, board: GameState, player: int, action: int) -> Tuple[GameState, int]:
         curr_player = get_team_from_code(player)
+
+        log.info(f"Board before move:\n{self.to_matrix(board)}")
+
         new_state = board.clone()
 
         action_obj = self.action_space[action]
@@ -189,6 +198,8 @@ class AbalonAiGameState(Game):
         move_direction = action_obj.direction
 
         new_state.board.move(circles_checked, move_direction, curr_player)
+
+        log.info(f"Board after move:\n{self.to_matrix(new_state)}")
 
         return new_state, -player
 
@@ -220,7 +231,7 @@ class AbalonAiGameState(Game):
         return [(board, pi_array)]
 
 
-    def toNetworkInput(self, board: GameState) -> npt.NDArray[np.float32]:
+    def to_matrix(self, board: GameState) -> npt.NDArray[np.int8]:
         matrix = np.zeros((9, 9), dtype=np.int8)
 
         # Mark forbidden hexes (outside the hex grid)
@@ -239,6 +250,11 @@ class AbalonAiGameState(Game):
             coords = circle.coords
             circle_team = circle.circle_type
             matrix[coords.line - 1, coords.diagonal - 1] = get_team_code(circle_team)
+
+        return matrix
+
+    def toNetworkInput(self, board: GameState) -> npt.NDArray[np.float32]:
+        matrix = self.to_matrix(board)
 
         return board_to_three_masks(matrix)
 
