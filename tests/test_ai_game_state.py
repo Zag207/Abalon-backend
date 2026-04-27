@@ -30,11 +30,11 @@ def test_get_board_size_and_action_size_are_valid():
     assert game.getActionSize() > 0
 
 
-def test_get_game_ended_is_zero_on_initial_position():
+def test_get_game_ended_is_none_on_initial_position():
     game = AbalonAiGameState()
     board = game.getInitBoard()
 
-    assert game.getGameEnded(board, 1) == 0
+    assert game.getGameEnded(board, 1) is None
 
 
 def test_get_canonical_form_for_white_returns_equivalent_copy():

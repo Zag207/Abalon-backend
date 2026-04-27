@@ -94,7 +94,7 @@ class MCTS():
 
         if s not in self.Es:
             self.Es[s] = self.game.getGameEnded(canonicalBoard, 1)
-        if self.Es[s] != 0:
+        if self.Es[s] is not None:
             # terminal node
             return -self.Es[s]
 

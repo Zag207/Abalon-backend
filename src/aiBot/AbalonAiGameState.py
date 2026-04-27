@@ -106,6 +106,8 @@ class AbalonAiGameState(Game):
         transformed_state.curr_team = board.curr_team
         transformed_state.score_white = board.score_white
         transformed_state.score_black = board.score_black
+        transformed_state.move_count = board.move_count
+        transformed_state.last_score_change_move = board.last_score_change_move
         return transformed_state
 
     def getInitBoard(self):
@@ -144,8 +146,20 @@ class AbalonAiGameState(Game):
     def getActionSize(self) -> int:
         return self.action_space.actions_count
     
-    def getGameEnded(self, board: GameState, player: int) -> int:
-        return board.is_win()
+    def getGameEnded(self, board: GameState, player: int) -> float | None:
+        """
+        Возвращает value (награду) для текущего игрока если игра закончилась.
+        
+        Возвращает:
+        - None: если игра еще не закончилась
+        - 1.0: если текущий игрок выиграл традиционным способом (6 очков)
+        - -1.0: если текущий игрок проиграл традиционным способом
+        - 0.8: если текущий игрок выиграл по количеству очков при лимите ходов
+        - -0.8: если текущий игрок проиграл по количеству очков при лимите ходов
+        - 0.0: если ничья при лимите ходов (одинаковое количество очков)
+        """
+        curr_team = get_team_from_code(player)
+        return board.get_value_for_player(curr_team)
     
     def getCanonicalForm(self, board: GameState, player: int) -> GameState:
         curr_team = get_team_from_code(player)
@@ -186,21 +200,30 @@ class AbalonAiGameState(Game):
     def getNextState(self, board: GameState, player: int, action: int) -> Tuple[GameState, int]:
         curr_player = get_team_from_code(player)
 
-        # log.info(f"Board before move:\n{self.to_matrix(board)}")
-
         new_state = board.clone()
-
+        
         action_obj = self.action_space[action]
 
         if action_obj is None:
             raise AttributeError("action_obj is None")
         
+        # Сохраняем старые очки для проверки изменения
+        old_score_black = new_state.score_black
+        old_score_white = new_state.score_white
+        old_move_count = new_state.move_count
+        
         circles_checked = [Circle(coords, curr_player) for coords in action_obj.selected_coords]
         move_direction = action_obj.direction
 
         new_state.board.move(circles_checked, move_direction, curr_player)
-
-        # log.info(f"Board after move:\n{self.to_matrix(new_state)}")
+        
+        # Увеличиваем счетчик ходов при переходе в новое состояние
+        new_state.move_count += 1
+        
+        # Если счет изменился, обновляем last_score_change_move
+        if new_state.score_black > old_score_black or new_state.score_white > old_score_white:
+            new_state.last_score_change_move = new_state.move_count
+            log.debug(f"Счет изменился! Ход {new_state.move_count}: Черные={new_state.score_black}, Белые={new_state.score_white}")
 
         return new_state, -player
 

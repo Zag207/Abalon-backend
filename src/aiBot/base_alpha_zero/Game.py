@@ -67,16 +67,17 @@ class Game():
         """
         raise NotImplementedError()
 
-    def getGameEnded(self, board: GameState, player: int) -> int:
+    def getGameEnded(self, board: GameState, player: int) -> float | None:
         """
         Input:
             board: current board
             player: current player (1 or -1)
 
         Returns:
-            r: 0 if game has not ended. 1 if player won, -1 if player lost,
-               small non-zero value for draw.
-               
+            - None: game has not ended
+            - 1.0 / -1.0: player won/lost (traditional victory)
+            - 0.8 / -0.8: player won/lost (moves limit victory)
+            - 0.0: draw (moves limit with equal score)
         """
         raise NotImplementedError()
 

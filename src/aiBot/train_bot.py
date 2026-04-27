@@ -1,6 +1,7 @@
 import logging
 import sys
 from pathlib import Path
+from datetime import datetime
 
 import coloredlogs
 
@@ -9,6 +10,9 @@ SRC_DIR = CURRENT_DIR.parent
 
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
+
+if str(CURRENT_DIR) not in sys.path:
+    sys.path.insert(0, str(CURRENT_DIR))
 
 from base_alpha_zero.Coach import Coach
 from AbalonAiGameState import AbalonAiGameState as Game
@@ -36,7 +40,15 @@ def configure_logging():
     root_logger.handlers.clear()
     root_logger.setLevel(logging.DEBUG)
 
-    file_handler = logging.FileHandler('app2.log')
+    # Создаем папку logs если её нет
+    logs_dir = Path('./logs')
+    logs_dir.mkdir(exist_ok=True)
+    
+    # Создаем файл с временной меткой
+    timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    log_file = logs_dir / f'app_{timestamp}.log'
+    
+    file_handler = logging.FileHandler(log_file)
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(
         logging.Formatter('%(asctime)s | %(levelname)s | %(name)s | %(message)s')
@@ -56,8 +68,8 @@ def configure_logging():
 configure_logging()
 
 args = dotdict({
-    'numIters': 1000,
-    'numEps': 1, #100,              # Number of complete self-play games to simulate during a new iteration.
+    'numIters': 2,
+    'numEps': 5, #100,              # Number of complete self-play games to simulate during a new iteration.
     'tempThreshold': 15,        #
     'updateThreshold': 0.6,     # During arena playoff, new neural net will be accepted if threshold or more of games are won.
     'maxlenOfQueue': 200000,    # Number of game examples to train the neural networks.
@@ -65,7 +77,7 @@ args = dotdict({
     'arenaCompare': 5, #40,         # Number of games to play during arena play to determine if new net will be accepted.
     'cpuct': 0.5,
 
-    'checkpoint': './temp/',
+    'checkpoint': './temp2/',
     'load_model': False,
     'load_folder_file': ('/dev/models/8x100x50','best.pth.tar'),
     'numItersForTrainExamplesHistory': 20,

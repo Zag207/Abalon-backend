@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from core.geometry.circle_coords import CircleCoords
 from core.board.circle_team import CircleTeam
 import uuid

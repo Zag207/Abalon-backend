@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from enum import Enum
 
 
@@ -11,7 +13,7 @@ class MovingDirections(Enum):
     UpLeft = 6
 
     @staticmethod
-    def get_moving_vector(moving: MovingDirections) -> tuple[int, int]:
+    def get_moving_vector(moving: "MovingDirections") -> tuple[int, int]:
         """
         Возвращает вектор движения по направлению: (линия, диагональ)
         """

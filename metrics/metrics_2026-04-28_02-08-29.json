@@ -1,0 +1,70 @@
+{
+  "iterations": [
+    {
+      "iteration": 1,
+      "num_episodes": 5,
+      "avg_moves_per_game": 200.0,
+      "min_moves": 200,
+      "max_moves": 200,
+      "wins_white": 0,
+      "wins_black": 0,
+      "draws": 5,
+      "wins_by_score": 0,
+      "wins_by_moves_limit": 5,
+      "avg_white_score": 0.0,
+      "avg_black_score": 0.0,
+      "train_loss": 1.3192437983117997,
+      "arena_new_wins": 0,
+      "arena_prev_wins": 0,
+      "arena_draws": 4,
+      "model_accepted": false,
+      "games": [
+        {
+          "episode_num": 1,
+          "move_count": 200,
+          "white_score": 0,
+          "black_score": 0,
+          "end_type": "moves_limit",
+          "winner": "Draw",
+          "value": 0.0
+        },
+        {
+          "episode_num": 2,
+          "move_count": 200,
+          "white_score": 0,
+          "black_score": 0,
+          "end_type": "moves_limit",
+          "winner": "Draw",
+          "value": 0.0
+        },
+        {
+          "episode_num": 3,
+          "move_count": 200,
+          "white_score": 0,
+          "black_score": 0,
+          "end_type": "moves_limit",
+          "winner": "Draw",
+          "value": 0.0
+        },
+        {
+          "episode_num": 4,
+          "move_count": 200,
+          "white_score": 0,
+          "black_score": 0,
+          "end_type": "moves_limit",
+          "winner": "Draw",
+          "value": 0.0
+        },
+        {
+          "episode_num": 5,
+          "move_count": 200,
+          "white_score": 0,
+          "black_score": 0,
+          "end_type": "moves_limit",
+          "winner": "Draw",
+          "value": 0.0
+        }
+      ]
+    }
+  ]
+}

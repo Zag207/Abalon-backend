@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from core.movement.moving_directions import MovingDirections
 
 

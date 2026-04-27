@@ -100,7 +100,7 @@ class AbalonNNet(NeuralNet):
         self.model = AbalonResNet(self.action_size, num_resblocks=num_resblocks, channels=channels).to(self.device)
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
 
-    def train(self, examples: list) -> None:
+    def train(self, examples: list) -> float:
         """
         Train the neural network on examples.
 
@@ -109,9 +109,12 @@ class AbalonNNet(NeuralNet):
                 - board: network input (numpy array 3x9x9)
                 - pi: policy vector (numpy array)
                 - v: game value (-1, 0, 1)
+        
+        Returns:
+            float: average loss over all epochs
         """
         if len(examples) == 0:
-            return
+            return 0.0
 
         boards = np.array([ex[0] for ex in examples], dtype=np.float32)
         pis = np.array([ex[1] for ex in examples], dtype=np.float32)
@@ -127,8 +130,12 @@ class AbalonNNet(NeuralNet):
         dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
         self.model.train()
+        all_epoch_losses = []
+        
         for epoch in range(10):
             total_loss = 0.0
+            num_batches = 0
+            
             for batch_boards, batch_pis, batch_vs in dataloader:
                 self.optimizer.zero_grad()
 
@@ -145,6 +152,13 @@ class AbalonNNet(NeuralNet):
                 self.optimizer.step()
 
                 total_loss += loss.item()
+                num_batches += 1
+            
+            avg_epoch_loss = total_loss / num_batches if num_batches > 0 else 0.0
+            all_epoch_losses.append(avg_epoch_loss)
+        
+        avg_loss = sum(all_epoch_losses) / len(all_epoch_losses) if all_epoch_losses else 0.0
+        return avg_loss
 
     def predict(self, board: npt.NDArray[np.float32]) -> Tuple[npt.NDArray[np.float32], float]:
         """
