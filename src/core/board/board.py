@@ -229,7 +229,7 @@ class Board:
             moving_circles = []
 
             if not is_good_move:
-                log.error("Ошибочный ход")
+                log.info("Ошибочный ход")
 
             if is_good_move:
                 circles_checked_ids = [circle.circle_id for circle in circles_checked]
@@ -258,7 +258,7 @@ class Board:
                 )
             
             if not is_good_move:
-                log.error("Ошибочный ход")
+                log.info("Ошибочный ход")
 
             moving_circles = []
             

@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import logging
 from typing import Tuple
 
@@ -185,7 +186,7 @@ class AbalonAiGameState(Game):
     def getNextState(self, board: GameState, player: int, action: int) -> Tuple[GameState, int]:
         curr_player = get_team_from_code(player)
 
-        log.info(f"Board before move:\n{self.to_matrix(board)}")
+        # log.info(f"Board before move:\n{self.to_matrix(board)}")
 
         new_state = board.clone()
 
@@ -199,7 +200,7 @@ class AbalonAiGameState(Game):
 
         new_state.board.move(circles_checked, move_direction, curr_player)
 
-        log.info(f"Board after move:\n{self.to_matrix(new_state)}")
+        # log.info(f"Board after move:\n{self.to_matrix(new_state)}")
 
         return new_state, -player
 

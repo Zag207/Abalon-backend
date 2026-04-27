@@ -17,7 +17,43 @@ from utils import *
 
 log = logging.getLogger(__name__)
 
-coloredlogs.install(level='INFO')  # Change this to DEBUG to see more info.
+
+class ConsoleAllowListFilter(logging.Filter):
+    """Allow only selected loggers (and warnings/errors) to reach console."""
+
+    def __init__(self, allowed_logger_prefixes):
+        super().__init__()
+        self.allowed_logger_prefixes = tuple(allowed_logger_prefixes)
+
+    def filter(self, record):
+        if record.levelno >= logging.WARNING:
+            return True
+        return record.name.startswith(self.allowed_logger_prefixes)
+
+
+def configure_logging():
+    root_logger = logging.getLogger()
+    root_logger.handlers.clear()
+    root_logger.setLevel(logging.DEBUG)
+
+    file_handler = logging.FileHandler('app2.log')
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(
+        logging.Formatter('%(asctime)s | %(levelname)s | %(name)s | %(message)s')
+    )
+
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    console_handler.addFilter(ConsoleAllowListFilter(['__main__', 'train_bot']))
+    console_handler.setFormatter(
+        coloredlogs.ColoredFormatter('%(asctime)s %(name)s[%(process)d] %(levelname)s %(message)s')
+    )
+
+    root_logger.addHandler(file_handler)
+    root_logger.addHandler(console_handler)
+
+
+configure_logging()
 
 args = dotdict({
     'numIters': 1000,
@@ -27,7 +63,7 @@ args = dotdict({
     'maxlenOfQueue': 200000,    # Number of game examples to train the neural networks.
     'numMCTSSims': 25,          # Number of games moves for MCTS to simulate.
     'arenaCompare': 5, #40,         # Number of games to play during arena play to determine if new net will be accepted.
-    'cpuct': 1,
+    'cpuct': 0.5,
 
     'checkpoint': './temp/',
     'load_model': False,
