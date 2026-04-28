@@ -68,18 +68,18 @@ def configure_logging():
 configure_logging()
 
 args = dotdict({
-    'numIters': 2,
+    'numIters': 5,
     'numEps': 5, #100,              # Number of complete self-play games to simulate during a new iteration.
     'tempThreshold': 15,        #
     'updateThreshold': 0.6,     # During arena playoff, new neural net will be accepted if threshold or more of games are won.
     'maxlenOfQueue': 200000,    # Number of game examples to train the neural networks.
     'numMCTSSims': 25,          # Number of games moves for MCTS to simulate.
-    'arenaCompare': 5, #40,         # Number of games to play during arena play to determine if new net will be accepted.
+    'arenaCompare': 2, #40,         # Number of games to play during arena play to determine if new net will be accepted.
     'cpuct': 0.5,
 
     'checkpoint': './temp2/',
-    'load_model': False,
-    'load_folder_file': ('/dev/models/8x100x50','best.pth.tar'),
+    'load_model': True, #False,
+    'load_folder_file': ('./model_dataset/','best.pth.tar'), # /dev/models/8x100x50
     'numItersForTrainExamplesHistory': 20,
 
 })

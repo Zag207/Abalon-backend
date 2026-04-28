@@ -18,3 +18,9 @@ diagrams/
 
 # logs
 *.log
+
+# metrics
+metrics/
+
+temp/
+temp2/

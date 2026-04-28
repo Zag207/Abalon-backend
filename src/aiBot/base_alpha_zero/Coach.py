@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 from collections import deque
+from datetime import datetime
 from pickle import Pickler, Unpickler
 from random import shuffle
 
@@ -130,95 +131,122 @@ class Coach():
         It then pits the new neural network against the old one and accepts it
         only if it wins >= updateThreshold fraction of games.
         """
+        iteration = 0
+        current_iteration_train_examples = None
 
-        for i in range(1, self.args.numIters + 1):
-            # bookkeeping
-            log.info(f'Starting Iter #{i} ...')
-            
-            # Начало новой итерации метрик
-            self.metrics_collector.start_iteration(i, self.args.numEps)
-            
-            # examples of the iteration
-            if not self.skipFirstSelfPlay or i > 1:
-                iterationTrainExamples = deque([], maxlen=self.args.maxlenOfQueue)
+        try:
+            for i in range(1, self.args.numIters + 1):
+                iteration = i
+                # bookkeeping
+                log.info(f'Starting Iter #{i} ...')
                 
-                episode_num = 0
-                for _ in tqdm(range(self.args.numEps), desc="Self Play"):
-                    episode_num += 1
-                    self.mcts = MCTS(self.game, self.nnet, self.args)  # reset search tree
-                    examples, metrics = self.executeEpisode(episode_num)
-                    iterationTrainExamples.extend(examples)
+                # Начало новой итерации метрик
+                self.metrics_collector.start_iteration(i, self.args.numEps)
+                
+                # examples of the iteration
+                if not self.skipFirstSelfPlay or i > 1:
+                    iterationTrainExamples = deque([], maxlen=self.args.maxlenOfQueue)
+                    current_iteration_train_examples = iterationTrainExamples
                     
-                    # Добавляем метрики игры
-                    self.metrics_collector.add_game(
-                        episode_num=metrics.episode_num,
-                        move_count=metrics.move_count,
-                        white_score=metrics.white_score,
-                        black_score=metrics.black_score,
-                        end_type=metrics.end_type,
-                        winner=metrics.winner,
-                        value=metrics.value,
-                    )
+                    episode_num = 0
+                    for _ in tqdm(range(self.args.numEps), desc="Self Play"):
+                        episode_num += 1
+                        self.mcts = MCTS(self.game, self.nnet, self.args)  # reset search tree
+                        examples, metrics = self.executeEpisode(episode_num)
+                        iterationTrainExamples.extend(examples)
+                        
+                        # Добавляем метрики игры
+                        self.metrics_collector.add_game(
+                            episode_num=metrics.episode_num,
+                            move_count=metrics.move_count,
+                            white_score=metrics.white_score,
+                            black_score=metrics.black_score,
+                            end_type=metrics.end_type,
+                            winner=metrics.winner,
+                            value=metrics.value,
+                        )
 
-                # save the iteration examples to the history 
-                self.trainExamplesHistory.append(iterationTrainExamples)
+                    # save the iteration examples to the history 
+                    self.trainExamplesHistory.append(iterationTrainExamples)
+                    current_iteration_train_examples = None
 
-            if len(self.trainExamplesHistory) > self.args.numItersForTrainExamplesHistory:
-                log.warning(
-                    f"Removing the oldest entry in trainExamples. len(trainExamplesHistory) = {len(self.trainExamplesHistory)}")
-                self.trainExamplesHistory.pop(0)
-            # backup history to a file
-            # NB! the examples were collected using the model from the previous iteration, so (i-1)  
-            self.saveTrainExamples(i - 1)
+                if len(self.trainExamplesHistory) > self.args.numItersForTrainExamplesHistory:
+                    log.warning(
+                        f"Removing the oldest entry in trainExamples. len(trainExamplesHistory) = {len(self.trainExamplesHistory)}")
+                    self.trainExamplesHistory.pop(0)
+                # backup history to a file
+                # NB! the examples were collected using the model from the previous iteration, so (i-1)  
+                self.saveTrainExamples(i - 1)
 
-            # shuffle examples before training
-            trainExamples = []
-            for e in self.trainExamplesHistory:
-                trainExamples.extend(e)
-            shuffle(trainExamples)
+                # shuffle examples before training
+                trainExamples = []
+                for e in self.trainExamplesHistory:
+                    trainExamples.extend(e)
+                shuffle(trainExamples)
 
-            # training new network, keeping a copy of the old one
-            self.nnet.save_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
-            self.pnet.load_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
-            pmcts = MCTS(self.game, self.pnet, self.args)
+                # training new network, keeping a copy of the old one
+                self.nnet.save_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
+                self.pnet.load_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
+                pmcts = MCTS(self.game, self.pnet, self.args)
 
-            log.info("Начало тренировки нейросети")
-            train_loss = self.nnet.train(trainExamples)
-            nmcts = MCTS(self.game, self.nnet, self.args)
+                log.info("Начало тренировки нейросети")
+                train_loss = self.nnet.train(trainExamples)
+                nmcts = MCTS(self.game, self.nnet, self.args)
 
-            log.info('PITTING AGAINST PREVIOUS VERSION')
-            arena = Arena(lambda x: np.argmax(pmcts.getActionProb(x, temp=0)),
-                          lambda x: np.argmax(nmcts.getActionProb(x, temp=0)), self.game)
-            pwins, nwins, draws = arena.playGames(self.args.arenaCompare)
+                log.info('PITTING AGAINST PREVIOUS VERSION')
+                arena = Arena(lambda x: np.argmax(pmcts.getActionProb(x, temp=0)),
+                              lambda x: np.argmax(nmcts.getActionProb(x, temp=0)), self.game)
+                pwins, nwins, draws = arena.playGames(self.args.arenaCompare)
 
-            log.info('NEW/PREV WINS : %d / %d ; DRAWS : %d' % (nwins, pwins, draws))
-            model_accepted = False
-            if pwins + nwins == 0 or float(nwins) / (pwins + nwins) < self.args.updateThreshold:
-                log.info('REJECTING NEW MODEL')
-                self.nnet.load_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
-            else:
-                log.info('ACCEPTING NEW MODEL')
-                self.nnet.save_checkpoint(folder=self.args.checkpoint, filename=self.getCheckpointFile(i))
-                self.nnet.save_checkpoint(folder=self.args.checkpoint, filename='best.pth.tar')
-                model_accepted = True
-            
-            # Завершение итерации метрик
-            self.metrics_collector.finalize_iteration(
-                train_loss=train_loss,
-                arena_new=(nwins, pwins, draws),
-                model_accepted=model_accepted
+                log.info('NEW/PREV WINS : %d / %d ; DRAWS : %d' % (nwins, pwins, draws))
+                model_accepted = False
+                if pwins + nwins == 0 or float(nwins) / (pwins + nwins) < self.args.updateThreshold:
+                    log.info('REJECTING NEW MODEL')
+                    self.nnet.load_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
+                else:
+                    log.info('ACCEPTING NEW MODEL')
+                    self.nnet.save_checkpoint(folder=self.args.checkpoint, filename=self.getCheckpointFile(i))
+                    self.nnet.save_checkpoint(folder=self.args.checkpoint, filename='best.pth.tar')
+                    model_accepted = True
+                
+                # Завершение итерации метрик
+                self.metrics_collector.finalize_iteration(
+                    train_loss=train_loss,
+                    arena_new=(nwins, pwins, draws),
+                    model_accepted=model_accepted
+                )
+        except KeyboardInterrupt:
+            timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+            autosave_name = f'autosave_interrupt_{timestamp}.pth.tar'
+            autosave_examples_name = f'autosave_interrupt_{timestamp}.pth.tar.examples'
+            train_examples_history = list(self.trainExamplesHistory)
+
+            if current_iteration_train_examples:
+                train_examples_history.append(current_iteration_train_examples)
+
+            log.warning('Получен Ctrl+C. Сохраняю текущую модель в %s...', autosave_name)
+            self.nnet.save_checkpoint(folder=self.args.checkpoint, filename=autosave_name)
+            log.warning('Сохраняю историю trainExamples в %s...', autosave_examples_name)
+            self.saveTrainExamples(
+                iteration,
+                filename=autosave_examples_name,
+                history=train_examples_history,
             )
+            log.warning('Модель сохранена. Обучение остановлено пользователем.')
 
     def getCheckpointFile(self, iteration):
         return 'checkpoint_' + str(iteration) + '.pth.tar'
 
-    def saveTrainExamples(self, iteration):
+    def saveTrainExamples(self, iteration, filename=None, history=None):
         folder = self.args.checkpoint
         if not os.path.exists(folder):
             os.makedirs(folder)
-        filename = os.path.join(folder, self.getCheckpointFile(iteration) + ".examples")
-        with open(filename, "wb+") as f:
-            Pickler(f).dump(self.trainExamplesHistory)
+        if filename is None:
+            filename = self.getCheckpointFile(iteration) + ".examples"
+        filepath = os.path.join(folder, filename)
+        examples_history = self.trainExamplesHistory if history is None else history
+        with open(filepath, "wb+") as f:
+            Pickler(f).dump(examples_history)
         f.closed
 
     def loadTrainExamples(self):

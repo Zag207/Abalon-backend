@@ -41,9 +41,20 @@ class MCTS():
 
         s = self.game.stringRepresentation(canonicalBoard)
         counts = [self.Nsa[(s, a)] if (s, a) in self.Nsa else 0 for a in range(self.game.getActionSize())]
+        
+        # Get valid moves for filtering
+        valids = self.game.getValidMoves(canonicalBoard, 1)
 
         if temp == 0:
-            bestAs = np.array(np.argwhere(counts == np.max(counts))).flatten()
+            # Mask invalid moves with -inf to exclude them from argmax
+            masked_counts = [c if v else -float('inf') for c, v in zip(counts, valids)]
+            max_count = max(masked_counts)
+            bestAs = np.array([a for a, (c, v) in enumerate(zip(counts, valids)) if v and c == max_count])
+            
+            if len(bestAs) == 0:
+                log.error("No valid moves found at temp=0")
+                return [1.0 / sum(valids) if sum(valids) > 0 else 0 for v in valids]
+            
             bestA = np.random.choice(bestAs)
             probs = [0] * len(counts)
             probs[bestA] = 1
@@ -53,6 +64,16 @@ class MCTS():
         counts = [x ** (1. / temp) for x in counts]
         counts_sum = float(sum(counts))
         probs = [x / counts_sum for x in counts]
+        
+        # Validate final moves: zero out probabilities for invalid actions
+        probs = [p * v for p, v in zip(probs, valids)]
+        probs_sum = sum(probs)
+        if probs_sum > 0:
+            probs = [p / probs_sum for p in probs]
+        else:
+            # Fallback: if all moves were invalid, distribute equally among valid moves
+            log.warning("No valid moves in final probabilities")
+            probs = [v / sum(valids) if sum(valids) > 0 else 0 for v in valids]
 
         return probs
 

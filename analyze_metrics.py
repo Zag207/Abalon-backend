@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 from typing import Dict, List
 
-def load_metrics(filepath: str = None) -> Dict:
+def load_metrics(filepath: str = "") -> Dict:
     """Загрузить метрики из JSON файла.
     
     Если filepath не указан, автоматически находит самый свежий файл metrics_*.json
