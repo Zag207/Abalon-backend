@@ -1,10 +1,10 @@
-numIters: 1
+numIters: 2
 numEps: 5
 tempThreshold: 15
 updateThreshold: 0.6
 maxlenOfQueue: 200000
-numMCTSSims: 150
-arenaCompare: 6
+numMCTSSims: 30
+arenaCompare: 2
 cpuct: 0.5
 checkpoint: ./temp2/
 load_model: false

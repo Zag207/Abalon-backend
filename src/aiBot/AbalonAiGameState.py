@@ -215,10 +215,9 @@ class AbalonAiGameState(Game):
         circles_checked = [Circle(coords, curr_player) for coords in action_obj.selected_coords]
         move_direction = action_obj.direction
 
-        new_state.board.move(circles_checked, move_direction, curr_player)
-        
-        # Увеличиваем счетчик ходов при переходе в новое состояние
-        new_state.move_count += 1
+        res = new_state._make_move(circles_checked, move_direction, curr_player)
+
+        assert not res.is_error, "getNextState called with invalid action"
         
         # Если счет изменился, обновляем last_score_change_move
         if new_state.score_black > old_score_black or new_state.score_white > old_score_white:

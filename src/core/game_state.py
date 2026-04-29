@@ -135,24 +135,18 @@ class GameState:
     def get_circles(self) -> List[Circle]:
         return self.board.circles
 
-    def move(
-            self,
-            circles_checked_ids: List[UUID],
-            move_direction: MovingDirections,
-            moving_team: CircleTeam
-            ) -> MovingResState:
+    def _make_move(self, 
+                    circles_checked: List[Circle], 
+                    move_direction: MovingDirections, 
+                    moving_team: CircleTeam
+                    ) -> MovingResState:
         if self.is_game_ended():
             return MovingResState(True, True, [])
-
+        
         if moving_team != self.get_moving_team():
             return MovingResState(True, False, [])
-
-        checked_circles = self.board.get_circles_by_ids(circles_checked_ids)
-
-        if len(checked_circles) != len(circles_checked_ids):
-            return MovingResState(True, False, [])
-
-        moving_res = self.board.move(checked_circles, move_direction, moving_team)
+        
+        moving_res = self.board.move(circles_checked, move_direction, moving_team)
 
         if not moving_res.is_error:
             self.curr_team = moving_team
@@ -172,3 +166,16 @@ class GameState:
             self.move_count += 1
         
         return MovingResState(moving_res.is_error, self.is_game_ended(), moving_res.circles_moving)
+
+    def move(
+            self,
+            circles_checked_ids: List[UUID],
+            move_direction: MovingDirections,
+            moving_team: CircleTeam
+            ) -> MovingResState:
+        checked_circles = self.board.get_circles_by_ids(circles_checked_ids)
+
+        if len(checked_circles) != len(circles_checked_ids):
+            return MovingResState(True, False, [])
+
+        return self._make_move(checked_circles, move_direction, moving_team)
