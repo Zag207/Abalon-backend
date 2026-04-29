@@ -5,6 +5,8 @@ import logging
 from typing import List
 from uuid import UUID
 
+from numpy import cross
+
 from core.board.board import Board
 from core.board.circle import Circle
 from core.board.circle_team import CircleTeam, get_enemy_team
@@ -98,6 +100,10 @@ class GameState:
         if not self.is_game_ended():
             return None
         
+        # Считаем колиество фишек за, на вражеской территрии для каждого игрока, чтобы использовать в случае ничьи при лимите ходов
+        cross_center_count_black = self.board.get_circles_count_cross_center_line(CircleTeam.Black)
+        cross_center_count_white = self.board.get_circles_count_cross_center_line(CircleTeam.White)
+
         if self.is_win():
             winner = self.get_winner_team()
             if winner == player_team:
@@ -107,16 +113,16 @@ class GameState:
         elif self.is_moves_limit_reached():
             # Сравниваем очки при лимите ходов
             if player_team == CircleTeam.Black:
-                if self.score_black > self.score_white:
+                if self.score_black > self.score_white or cross_center_count_black > cross_center_count_white:
                     return MOVES_LIMIT_VALUE
-                elif self.score_black < self.score_white:
+                elif self.score_black < self.score_white or cross_center_count_black < cross_center_count_white:
                     return -MOVES_LIMIT_VALUE
                 else:
                     return 0.0  # Ничья
             else:  # CircleTeam.White
-                if self.score_white > self.score_black:
+                if self.score_white > self.score_black or cross_center_count_white > cross_center_count_black:
                     return MOVES_LIMIT_VALUE
-                elif self.score_white < self.score_black:
+                elif self.score_white < self.score_black or cross_center_count_white < cross_center_count_black:
                     return -MOVES_LIMIT_VALUE
                 else:
                     return 0.0  # Ничья

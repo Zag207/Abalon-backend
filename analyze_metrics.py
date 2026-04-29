@@ -114,7 +114,14 @@ def print_trends(data: Dict):
     # Тренд ходов
     first_moves = iterations[0]['avg_moves_per_game']
     last_moves = iterations[-1]['avg_moves_per_game']
-    moves_trend = "📈 растет" if last_moves > first_moves else "📉 падает"
+
+    if last_moves > first_moves:
+        moves_trend = "📈 растет"
+    elif last_moves < first_moves:
+        moves_trend = "📉 падает"
+    else:
+        moves_trend = "⚖️ стабилен"
+
     print(f"\n⏱️  Количество ходов: {moves_trend}")
     print(f"   • Было: {first_moves:.1f} → Стало: {last_moves:.1f}")
     

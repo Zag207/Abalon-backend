@@ -139,6 +139,7 @@ class Coach():
                 iteration = i
                 # bookkeeping
                 log.info(f'Starting Iter #{i} ...')
+                print(f'Starting Iter #{i} ...')
                 
                 # Начало новой итерации метрик
                 self.metrics_collector.start_iteration(i, self.args.numEps)

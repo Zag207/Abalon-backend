@@ -95,9 +95,9 @@ class Arena():
         draws = 0
         for _ in tqdm(range(num), desc="Arena.playGames (1)"):
             gameResult = self.playGame(verbose=verbose)
-            if gameResult == 1:
+            if gameResult > 0:
                 oneWon += 1
-            elif gameResult == -1:
+            elif gameResult < 0:
                 twoWon += 1
             else:
                 draws += 1
@@ -106,11 +106,13 @@ class Arena():
 
         for _ in tqdm(range(num), desc="Arena.playGames (2)"):
             gameResult = self.playGame(verbose=verbose)
-            if gameResult == -1:
+            if gameResult > 0:
                 oneWon += 1
-            elif gameResult == 1:
+            elif gameResult < 0:
                 twoWon += 1
             else:
                 draws += 1
 
+        log.info(f"End Arena\nResults: Player 1 won {oneWon}, Player 2 won {twoWon}, Draws: {draws}")
+        print(f"End Arena\nResults: Player 1 won {oneWon}, Player 2 won {twoWon}, Draws: {draws}")
         return oneWon, twoWon, draws

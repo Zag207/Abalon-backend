@@ -29,6 +29,14 @@ class Board:
             for circle in self.circles
         ])
     
+    def get_circles_count_cross_center_line(self, team: CircleTeam) -> int:
+        if team == CircleTeam.White:
+            return sum(1 for circle in self.circles if circle.circle_type == CircleTeam.White and circle.coords.line > 5)
+        elif team == CircleTeam.Black:
+            return sum(1 for circle in self.circles if circle.circle_type == CircleTeam.Black and circle.coords.line < 5)
+        else:
+            return 0
+
     def is_hex_empty(self, hex_coords: CircleCoords) -> bool:
         return not any(circle.coords == hex_coords for circle in self.circles)
     
@@ -214,12 +222,18 @@ class Board:
             move_direction: MovingDirections,
             current_team: CircleTeam
     ) -> MoveResult:
-        if any(circle not in self.circles for circle in circles_checked):
-            return MoveResult(is_error=True)
+        # Проверяем по координатам и team, а не по объектной идентичности
+        for circle_to_move in circles_checked:
+            if not any(c.coords == circle_to_move.coords and c.circle_type == circle_to_move.circle_type 
+                       for c in self.circles):
+                return MoveResult(is_error=True)
         
         moving_type = self.get_moving_type(len(circles_checked))
         increasing_score = 0
-        circles_checked = [circle for circle in self.circles if circle in circles_checked]
+        # Находим реальные объекты фишек на доске по координатам и team
+        circles_checked = [c for c in self.circles 
+                          if any(c_input.coords == c.coords and c_input.circle_type == c.circle_type 
+                                 for c_input in circles_checked)]
 
         if moving_type == MovingTypes.Parall:
             is_good_move, _ = self.get_move_validation_result(
