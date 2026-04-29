@@ -1,5 +1,7 @@
 import logging
+import argparse
 import sys
+import yaml
 from pathlib import Path
 from datetime import datetime
 
@@ -67,24 +69,64 @@ def configure_logging():
 
 configure_logging()
 
-args = dotdict({
-    'numIters': 3, #10,
-    'numEps': 25, #12, #100,              # Number of complete self-play games to simulate during a new iteration.
-    'tempThreshold': 15,        #
-    'updateThreshold': 0.6,     # During arena playoff, new neural net will be accepted if threshold or more of games are won.
-    'maxlenOfQueue': 200000,    # Number of game examples to train the neural networks.
-    'numMCTSSims': 150,          # Number of games moves for MCTS to simulate.
-    'arenaCompare': 6, #40,         # Number of games to play during arena play to determine if new net will be accepted.
+DEFAULT_TRAIN_ARGS = {
+    'numIters': 3,
+    'numEps': 25,
+    'tempThreshold': 15,
+    'updateThreshold': 0.6,
+    'maxlenOfQueue': 200000,
+    'numMCTSSims': 150,
+    'arenaCompare': 6,
     'cpuct': 0.5,
-
     'checkpoint': './temp2/',
     'load_model': False,
-    'load_folder_file': ('./temp2/','best.pth.tar'), # /dev/models/8x100x50
+    'load_folder_file': ('./temp2/', 'best.pth.tar'),
     'numItersForTrainExamplesHistory': 20,
-})
+}
+
+
+def parse_cli_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description='Train Abalon bot with YAML config')
+    parser.add_argument(
+        'config',
+        type=str,
+        help='Path to YAML file with training parameters (for example: train_config.yaml)',
+    )
+    return parser.parse_args()
+
+
+def load_train_args(config_file: str) -> dotdict:
+    config_path = Path(config_file).expanduser().resolve()
+    if not config_path.is_file():
+        raise FileNotFoundError(f'Config file not found: {config_path}')
+
+    with config_path.open('r', encoding='utf-8') as f:
+        loaded = yaml.safe_load(f)
+        print(f"✅ Загружен конфиг из {config_path}:\n{yaml.dump(loaded, default_flow_style=False)}")
+
+    if not isinstance(loaded, dict):
+        raise ValueError('YAML config must contain a top-level dictionary with training parameters')
+
+    merged = dict(DEFAULT_TRAIN_ARGS)
+    merged.update(loaded)
+
+    load_folder_file = merged.get('load_folder_file')
+    if isinstance(load_folder_file, list):
+        if len(load_folder_file) != 2:
+            raise ValueError("'load_folder_file' must contain exactly 2 items: [folder, filename]")
+        merged['load_folder_file'] = (load_folder_file[0], load_folder_file[1])
+    elif not isinstance(load_folder_file, tuple):
+        raise ValueError("'load_folder_file' must be a list or tuple with 2 items")
+
+    return dotdict(merged)
 
 
 def main():
+    cli_args = parse_cli_args()
+    args = load_train_args(cli_args.config)
+
+    log.info('Loaded training config from %s', cli_args.config)
+
     log.info('Loading %s...', Game.__name__)
     g = Game()
 

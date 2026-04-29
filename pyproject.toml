@@ -8,6 +8,7 @@ dependencies = [
     "coloredlogs>=15.0.1",
     "fastapi[standard]>=0.135.3",
     "numpy>=2.4.4",
+    "pyyaml>=6.0.2",
     "pytest>=9.0.2",
     "ruff>=0.15.8",
     "tqdm>=4.67.3",
