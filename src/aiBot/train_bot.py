@@ -17,7 +17,7 @@ if str(CURRENT_DIR) not in sys.path:
     sys.path.insert(0, str(CURRENT_DIR))
 
 from base_alpha_zero.Coach import Coach
-from AbalonAiGameState import AbalonAiGameState as Game
+from aiBot.NumpyAbalonAiGame import NumpyAbalonAiGame as Game
 from neural_net import AbalonNNet as nn
 from utils import *
 
