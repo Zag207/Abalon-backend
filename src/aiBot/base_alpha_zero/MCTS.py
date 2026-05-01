@@ -3,11 +3,11 @@ import math
 
 import numpy as np
 
+from aiBot.network_utils import board_to_three_masks
+
 EPS = 1e-8
 
 log = logging.getLogger(__name__)
-
-prev_s = ""
 
 class MCTS():
     """
@@ -25,7 +25,6 @@ class MCTS():
 
         self.Es = {}  # stores game.getGameEnded ended for board s
         self.Vs = {}  # stores game.getValidMoves for board s
-        self.valid_moves_cache = {}  # cache valid moves globally to avoid recomputation
 
     def getActionProb(self, canonicalBoard, temp=1):
         """
@@ -37,47 +36,24 @@ class MCTS():
                    proportional to Nsa[(s,a)]**(1./temp)
         """
         for i in range(self.args.numMCTSSims):
-            self.search(canonicalBoard, visited_states=set())
+            self.search(canonicalBoard)
 
         s = self.game.stringRepresentation(canonicalBoard)
         counts = [self.Nsa[(s, a)] if (s, a) in self.Nsa else 0 for a in range(self.game.getActionSize())]
-        
-        # Get valid moves for filtering
-        valids = self.game.getValidMoves(canonicalBoard, 1)
 
         if temp == 0:
-            # Mask invalid moves with -inf to exclude them from argmax
-            masked_counts = [c if v else -float('inf') for c, v in zip(counts, valids)]
-            max_count = max(masked_counts)
-            bestAs = np.array([a for a, (c, v) in enumerate(zip(counts, valids)) if v and c == max_count])
-            
-            if len(bestAs) == 0:
-                log.error("No valid moves found at temp=0")
-                return [1.0 / sum(valids) if sum(valids) > 0 else 0 for v in valids]
-            
+            bestAs = np.array(np.argwhere(counts == np.max(counts))).flatten()
             bestA = np.random.choice(bestAs)
             probs = [0] * len(counts)
             probs[bestA] = 1
-
             return probs
 
         counts = [x ** (1. / temp) for x in counts]
         counts_sum = float(sum(counts))
         probs = [x / counts_sum for x in counts]
-        
-        # Validate final moves: zero out probabilities for invalid actions
-        probs = [p * v for p, v in zip(probs, valids)]
-        probs_sum = sum(probs)
-        if probs_sum > 0:
-            probs = [p / probs_sum for p in probs]
-        else:
-            # Fallback: if all moves were invalid, distribute equally among valid moves
-            log.warning("No valid moves in final probabilities")
-            probs = [v / sum(valids) if sum(valids) > 0 else 0 for v in valids]
-
         return probs
 
-    def search(self, canonicalBoard, visited_states=None, depth=0, max_depth=1000):
+    def search(self, canonicalBoard):
         """
         This function performs one iteration of MCTS. It is recursively called
         till a leaf node is found. The action chosen at each node is one that
@@ -97,21 +73,7 @@ class MCTS():
             v: the negative of the value of the current canonicalBoard
         """
 
-        if visited_states is None:
-            visited_states = set()
-
-        # Защита от циклов и слишком глубокого поиска
         s = self.game.stringRepresentation(canonicalBoard)
-        
-        # if depth > max_depth:
-        #     # log.warning(f"Max depth {max_depth} reached, returning 0")
-        #     return 0
-        
-        if s in visited_states:
-            # log.warning(f"Cycle detected at depth {depth}, state was already visited")
-            return 0
-        
-        visited_states.add(s)
 
         if s not in self.Es:
             self.Es[s] = self.game.getGameEnded(canonicalBoard, 1)
@@ -121,14 +83,8 @@ class MCTS():
 
         if s not in self.Ps:
             # leaf node
-            networkInput = self.game.toNetworkInput(canonicalBoard)
-
-            self.Ps[s], v = self.nnet.predict(networkInput)
-
-            # Use cached valid moves or compute and cache
-            if s not in self.valid_moves_cache:
-                self.valid_moves_cache[s] = self.game.getValidMoves(canonicalBoard, 1)
-            valids = self.valid_moves_cache[s]
+            self.Ps[s], v = self.nnet.predict(board_to_three_masks(canonicalBoard.board))
+            valids = self.game.getValidMoves(canonicalBoard, 1)
             self.Ps[s] = self.Ps[s] * valids  # masking invalid moves
             sum_Ps_s = np.sum(self.Ps[s])
             if sum_Ps_s > 0:
@@ -146,13 +102,7 @@ class MCTS():
             self.Ns[s] = 0
             return -v
 
-        # For internal nodes, use cache (should always be present if we visited this node)
-        valids = self.valid_moves_cache.get(s)
-        if valids is None:
-            # Fallback: recompute if not in cache (shouldn't normally happen)
-            valids = self.game.getValidMoves(canonicalBoard, 1)
-            self.valid_moves_cache[s] = valids
-        
+        valids = self.Vs[s]
         cur_best = -float('inf')
         best_act = -1
 
@@ -169,20 +119,11 @@ class MCTS():
                     cur_best = u
                     best_act = a
 
-        # log.info(f"Best act: {best_act}")
-
         a = best_act
-        
-        # Дополнительная защита: если нет валидных ходов, вернуть 0
-        if a == -1:
-            log.error(f"No valid moves found at depth {depth}")
-            return 0
-
         next_s, next_player = self.game.getNextState(canonicalBoard, 1, a)
         next_s = self.game.getCanonicalForm(next_s, next_player)
 
-        # log.info("БЛЯТЬ")
-        v = self.search(next_s, visited_states=visited_states)#, depth=depth+1, max_depth=max_depth)
+        v = self.search(next_s)
 
         if (s, a) in self.Qsa:
             self.Qsa[(s, a)] = (self.Nsa[(s, a)] * self.Qsa[(s, a)] + v) / (self.Nsa[(s, a)] + 1)

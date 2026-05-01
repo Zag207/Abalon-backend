@@ -1,5 +1,6 @@
 from ast import Tuple
 from enum import Enum
+import logging
 
 import numpy as np
 
@@ -7,6 +8,8 @@ from aiBot.game_state_utils import get_team_code
 from core.board.circle_team import CircleTeam
 
 from .game_ai_state import NumpyAbalonGameState
+
+log = logging.getLogger(__name__)
 
 
 WINNER_SCORE = 6
@@ -19,8 +22,8 @@ class GameEndStatus(Enum):
     MovesLimit = 'moves_limit'
 
 def is_win(game_state: NumpyAbalonGameState) -> bool:
-    return game_state.score_black >= WINNER_SCORE or \
-           game_state.score_white >= WINNER_SCORE
+    return 14 - int(np.count_nonzero(game_state.board == -1)) >= WINNER_SCORE or \
+           14 - int(np.count_nonzero(game_state.board == 1)) >= WINNER_SCORE
 
 def is_moves_limit_reached(game_state: NumpyAbalonGameState) -> bool:
     """Проверяет, достигнут ли лимит в 200 ходов БЕЗ ИЗМЕНЕНИЯ СЧЕТА."""
@@ -29,7 +32,12 @@ def is_moves_limit_reached(game_state: NumpyAbalonGameState) -> bool:
     # ИЛИ если с последнего изменения счета прошло 200 ходов
     moves_since_last_score = game_state.move_count - game_state.last_score_change_move
     
-    return game_state.move_count >= MAX_MOVES and moves_since_last_score >= MAX_MOVES
+    result = game_state.move_count >= MAX_MOVES and moves_since_last_score >= MAX_MOVES
+    
+    if game_state.move_count > 190:  # Логируем в конце игры
+        log.debug(f"[MOVES_LIMIT] move_count={game_state.move_count}, last_score_change={game_state.last_score_change_move}, since_last_score={moves_since_last_score}, result={result}")
+    
+    return result
 
 def get_game_end_status(game_state: NumpyAbalonGameState) -> GameEndStatus:
     """Определяет статус окончания игры."""
@@ -89,8 +97,8 @@ def get_team_move_reached_value(game_state: NumpyAbalonGameState, player: Circle
     cross_center_count_black = get_circles_count_cross_center_line(game_state, CircleTeam.Black)
     cross_center_count_white = get_circles_count_cross_center_line(game_state, CircleTeam.White)
 
-    count_on_center_black = get_circles_count_on_center_line(game_state, CircleTeam.Black)
-    count_on_center_white = get_circles_count_on_center_line(game_state, CircleTeam.White)
+    count_on_center_black = 0 #get_circles_count_on_center_line(game_state, CircleTeam.Black)
+    count_on_center_white = 0 #get_circles_count_on_center_line(game_state, CircleTeam.White)
 
     match player:
         case CircleTeam.Black:
@@ -137,6 +145,9 @@ def get_value_for_player(game_state: NumpyAbalonGameState, player_team: CircleTe
     - 0.0: ничья при лимите ходов (одинаковый счет)
     """
     game_status = get_game_end_status(game_state)
+    
+    if game_status != GameEndStatus.NotEnded and game_state.move_count > 190:
+        log.debug(f"[GET_VALUE] move_count={game_state.move_count}, status={game_status}, team={player_team}")
 
     match game_status:
         case GameEndStatus.NotEnded:

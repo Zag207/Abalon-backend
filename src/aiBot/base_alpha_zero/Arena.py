@@ -47,6 +47,10 @@ class Arena():
                 player.startGame()
 
         while self.game.getGameEnded(board, curPlayer) is None:
+            if board.move_count > 200:
+                log.error(f"⚠️ КРИТИЧЕСКАЯ ОШИБКА! Счетчик ходов превышен: {board.move_count}/200")
+                log.error(f"bscore: {board.score_black}, wscore: {board.score_white}, lmove: {board.last_score_change_move}\n")
+
             it += 1
             if verbose:
                 assert self.display

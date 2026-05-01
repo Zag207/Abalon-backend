@@ -8,6 +8,9 @@ from random import shuffle
 
 from tqdm import tqdm
 
+from aiBot.network_utils import board_to_three_masks
+from aiBot.numpy_game_logic.game_end_logic import GameEndStatus, get_game_end_status
+
 from .Arena import Arena
 from .MCTS import MCTS
 
@@ -84,19 +87,19 @@ class Coach():
 
             r = self.game.getGameEnded(board, self.curPlayer)
 
-            # log.info(f"Шаг эпизода: {episodeStep}")
-
             if r is not None:
-                end_type = board.get_game_end_type()
-                if end_type == 'score_win':
+                print(r)
+
+                end_type = get_game_end_status(board)
+                if end_type == GameEndStatus.ScoreWin:
                     winner_name = "Белые" if board.score_white >= 6 else "Черные"
                     log.info(f"🏁 Эпизод закончен ТРАДИЦИОННОЙ ПОБЕДОЙ! Победитель: {winner_name}")
                     winner = "White" if board.score_white >= 6 else "Black"
-                elif end_type == 'moves_limit':
-                    if board.score_white > board.score_black:
+                elif end_type == GameEndStatus.MovesLimit:
+                    if -self.curPlayer == 1 and r > 0 or -self.curPlayer == -1 and r < 0:
                         winner_name = "Белые"
                         winner = "White"
-                    elif board.score_white < board.score_black:
+                    elif -self.curPlayer == -1 and r > 0 or -self.curPlayer == 1 and r < 0:
                         winner_name = "Черные"
                         winner = "Black"
                     else:
@@ -119,7 +122,7 @@ class Coach():
                 )
                 
                 return (
-                    [(self.game.toNetworkInput(x[0]), x[2], r * ((-1) ** (x[1] != self.curPlayer))) for x in trainExamples],
+                    [(board_to_three_masks(x[0].board), x[2], r * ((-1) ** (x[1] != self.curPlayer))) for x in trainExamples],
                     metrics
                 )
 
@@ -255,9 +258,9 @@ class Coach():
         examplesFile = modelFile + ".examples"
         if not os.path.isfile(examplesFile):
             log.warning(f'File "{examplesFile}" with trainExamples not found!')
-            r = input("Continue? [y|n]")
-            if r != "y":
-                sys.exit()
+            log.info("Starting with empty trainExamplesHistory...")
+            # Продолжаем с пустой историей - это нормально при первом запуске
+            self.trainExamplesHistory = []
         else:
             log.info("File with trainExamples found. Loading it...")
             with open(examplesFile, "rb") as f:

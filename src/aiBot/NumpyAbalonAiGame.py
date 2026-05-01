@@ -3,7 +3,9 @@ from typing import List, Tuple
 import numpy as np
 import numpy.typing as npt
 
+from core.board.board import Board
 from core.board.circle_team import CircleTeam
+from core.setup.prepare_circles import fill_circle_board
 
 from .numpy_game_logic.game_end_logic import get_value_for_player
 from .numpy_game_logic.game_ai_state import NumpyAbalonGameState
@@ -27,8 +29,8 @@ class NumpyAbalonAiGame(Game):
 
         self.action_space = ActionSpace()
     
-    def getInitBoard(self, board: GameState):
-        return get_matrix_from_board(board.board)
+    def getInitBoard(self):
+        return NumpyAbalonGameState(get_matrix_from_board(Board(fill_circle_board())))
     
     def getBoardSize(self) -> Tuple[int, int]:
         return (9, 9)
@@ -64,10 +66,10 @@ class NumpyAbalonAiGame(Game):
             )
     
     def stringRepresentation(self, board: NumpyAbalonGameState) -> str:
-        # Warning: Может быть баг - состояния различаются по другим полям, а не только по доске. Но для простоты пока так.
-
-        # Преобразуем матрицу в строку для уникального представления
-        return ''.join(map(str, board.board.flatten()))
+        # Включаем доску И метаданные (move_count и last_score_change_move)
+        # чтобы состояния на разных ходах считались разными
+        board_str = ''.join(map(str, board.board.flatten()))
+        return f"{board_str}|m{board.move_count}|ls{board.last_score_change_move}|sb{board.score_black}|sw{board.score_white}"
 
     def getValidMoves(
             self, 
@@ -113,7 +115,7 @@ class NumpyAbalonAiGame(Game):
             board: NumpyAbalonGameState, 
             player: int, 
             action: int
-            ) -> NumpyAbalonGameState:
+            ) -> Tuple[NumpyAbalonGameState, int]:
         """
         Возвращает новое состояние игры после применения action.
         
@@ -123,7 +125,8 @@ class NumpyAbalonAiGame(Game):
             action: индекс действия в action_space
         
         Returns:
-            новое состояние доски после хода
+            - новое состояние доски после хода
+            - следующего игрока
         """
         # Получить action из action_space
         assert 0 <= action < self.action_space.actions_count, f"Invalid action index: {action}"
@@ -160,14 +163,17 @@ class NumpyAbalonAiGame(Game):
                     raise ValueError(f"Unknown team: {curr_team}")
             new_last_score_change_move = board.move_count
         
+        # if board.move_count > 190:
+        #     print(board.move_count + 1)
+
         # Вернуть новое состояние
-        return NumpyAbalonGameState(
+        return (NumpyAbalonGameState(
             board=new_board,
             score_black=new_score_black,
             score_white=new_score_white,
             move_count=board.move_count + 1,
             last_score_change_move=new_last_score_change_move
-        )
+        ), -player)
 
     def getSymmetries(self, board: NumpyAbalonGameState, pi: npt.NDArray[np.float32]) -> List[Tuple[NumpyAbalonGameState, npt.NDArray[np.float32]]]:
         # Для простоты пока не реализуем симметрии. Можно добавить вращения и отражения доски, если будет нужно.

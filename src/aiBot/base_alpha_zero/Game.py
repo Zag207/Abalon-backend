@@ -20,7 +20,7 @@ class Game():
     def __init__(self):
         pass
 
-    def getInitBoard(self, board: GameState) -> npt.NDArray[np.int8]:
+    def getInitBoard(self) -> NumpyAbalonGameState:
         """
         Returns:
             startBoard: a representation of the board (ideally this is the form
@@ -42,7 +42,7 @@ class Game():
         """
         raise NotImplementedError()
 
-    def getNextState(self, board: NumpyAbalonGameState, player: int, action: int) -> NumpyAbalonGameState:
+    def getNextState(self, board: NumpyAbalonGameState, player: int, action: int) -> Tuple[NumpyAbalonGameState, int]:
         """
         Input:
             board: current board
