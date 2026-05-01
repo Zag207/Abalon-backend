@@ -29,6 +29,34 @@ def get_team_from_code(circle_team_code: int) -> CircleTeam:
         case _:
             raise ArgumentError("Unknown team code")
 
+def get_matrix_from_board(board: Board) -> npt.NDArray[np.int8]:
+    # Коды:
+        #  1  - белая фишка
+        # -1  - черная фишка
+        #  0  - пустая валидная клетка
+        #  2  - несуществующая (вне гекса), если храните доску как 9x9
+    
+    matrix = np.zeros((9, 9), dtype=np.int8)
+
+    # Mark forbidden hexes (outside the hex grid)
+    offset = 4
+    for i in range(0, 4):
+        matrix[:offset, i] = 2
+        offset -= 1
+    
+    offset = 1
+    for i in range(5, 9):
+        matrix[(9 - offset):, i] = 2
+        offset += 1
+
+    # Place circles from the given board state
+    for circle in board.circles:
+        coords = circle.coords
+        circle_team = circle.circle_type
+        matrix[coords.line - 1, coords.diagonal - 1] = get_team_code(circle_team)
+
+    return matrix
+
 def get_board_from_matrix_board(matrix_board: npt.NDArray[np.int8]) -> Board:
     linesW, diagonalsW = np.where(matrix_board == 1)
     linesB, diagonalsB = np.where(matrix_board == -1)

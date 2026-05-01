@@ -3,6 +3,7 @@ from typing import Tuple
 import numpy as np
 import numpy.typing as npt
 
+from aiBot.numpy_game_logic.game_ai_state import NumpyAbalonGameState
 from core.game_state import GameState
 
 
@@ -19,7 +20,7 @@ class Game():
     def __init__(self):
         pass
 
-    def getInitBoard(self) -> GameState:
+    def getInitBoard(self, board: GameState) -> npt.NDArray[np.int8]:
         """
         Returns:
             startBoard: a representation of the board (ideally this is the form
@@ -34,14 +35,14 @@ class Game():
         """
         raise NotImplementedError()
 
-    def getActionSize(self):
+    def getActionSize(self) -> int:
         """
         Returns:
             actionSize: number of all possible actions
         """
         raise NotImplementedError()
 
-    def getNextState(self, board: GameState, player: int, action: int) -> Tuple[GameState, int]:
+    def getNextState(self, board: NumpyAbalonGameState, player: int, action: int) -> NumpyAbalonGameState:
         """
         Input:
             board: current board
@@ -54,7 +55,7 @@ class Game():
         """
         raise NotImplementedError()
 
-    def getValidMoves(self, board: GameState, player: int) -> npt.NDArray[np.int8]:
+    def getValidMoves(self, board: NumpyAbalonGameState, player: int) -> npt.NDArray[np.int8]:
         """
         Input:
             board: current board
@@ -67,7 +68,7 @@ class Game():
         """
         raise NotImplementedError()
 
-    def getGameEnded(self, board: GameState, player: int) -> float | None:
+    def getGameEnded(self, board: NumpyAbalonGameState, player: int) -> float | None:
         """
         Input:
             board: current board
@@ -81,7 +82,7 @@ class Game():
         """
         raise NotImplementedError()
 
-    def getCanonicalForm(self, board: GameState, player: int) -> GameState:
+    def getCanonicalForm(self, board: NumpyAbalonGameState, player: int) -> NumpyAbalonGameState:
         """
         Input:
             board: current board
@@ -97,7 +98,7 @@ class Game():
         """
         raise NotImplementedError()
 
-    def getSymmetries(self, board: GameState, pi) -> list[tuple[GameState, npt.NDArray[np.float32]]]:
+    def getSymmetries(self, board: NumpyAbalonGameState, pi: npt.NDArray[np.float32]) -> list[tuple[NumpyAbalonGameState, npt.NDArray[np.float32]]]:
         """
         Input:
             board: current board
@@ -110,19 +111,7 @@ class Game():
         """
         raise NotImplementedError()
 
-    def toNetworkInput(self, board: GameState) -> npt.NDArray[np.float32]:
-        """
-        Convert game state to neural network input (matrix).
-
-        Input:
-            board: current board (GameState or equivalent)
-
-        Returns:
-            networkInput: numpy array suitable for neural network prediction
-        """
-        raise NotImplementedError()
-
-    def stringRepresentation(self, board: GameState) -> str:
+    def stringRepresentation(self, board: NumpyAbalonGameState) -> str:
         """
         Input:
             board: current board
