@@ -41,6 +41,15 @@ class IterationMetrics:
     wins_by_score: int = 0
     wins_by_moves_limit: int = 0
     
+    # Победы с ±1.0 (истинные, по 6 очкам)
+    wins_white_true: int = 0  # value = 1.0
+    wins_black_true: int = 0  # value = -1.0
+    
+    # Победы с ±0.8 (по очкам при лимите ходов)
+    wins_white_moves_limit: int = 0  # value = 0.8
+    wins_black_moves_limit: int = 0  # value = -0.8
+    draws_moves_limit: int = 0  # value = 0.0 при лимите
+    
     # Счет
     avg_white_score: float = 0.0
     avg_black_score: float = 0.0
@@ -120,8 +129,21 @@ class MetricsCollector:
             
             if game.end_type == "score_win":
                 self.current_iteration.wins_by_score += 1
+                # Истинные победы (±1.0)
+                if game.value == 1.0:
+                    self.current_iteration.wins_white_true += 1
+                elif game.value == -1.0:
+                    self.current_iteration.wins_black_true += 1
+                    
             elif game.end_type == "moves_limit":
                 self.current_iteration.wins_by_moves_limit += 1
+                # Победы по лимиту ходов (±0.8 или 0.0)
+                if game.value == 0.8:
+                    self.current_iteration.wins_white_moves_limit += 1
+                elif game.value == -0.8:
+                    self.current_iteration.wins_black_moves_limit += 1
+                elif game.value == 0.0:
+                    self.current_iteration.draws_moves_limit += 1
         
         # Счет
         white_scores = [g.white_score for g in games]
@@ -135,12 +157,19 @@ class MetricsCollector:
         self.current_iteration.model_accepted = model_accepted
         
         self.iterations.append(self.current_iteration)
+        
+        # Логируем перед сохранением
+        log.debug(f"[METRICS] Итерация #{self.current_iteration.iteration} завершена:")
+        log.debug(f"  • Всего игр: {len(games)}")
+        log.debug(f"  • Истинные победы (±1.0): W={self.current_iteration.wins_white_true}, B={self.current_iteration.wins_black_true}")
+        log.debug(f"  • Победы по лимиту (±0.8/0.0): W={self.current_iteration.wins_white_moves_limit}, B={self.current_iteration.wins_black_moves_limit}, D={self.current_iteration.draws_moves_limit}")
+        
         self._log_iteration()
         self._save_to_file()
     
     def _log_iteration(self):
         """Логировать метрики итерации."""
-        it = self.current_iteration
+        it: IterationMetrics = self.current_iteration  # type: ignore
         total_games = it.wins_white + it.wins_black + it.draws
         
         log.info("\n" + "="*80)
@@ -153,6 +182,10 @@ class MetricsCollector:
         win_pct_white = (it.wins_white / total_games * 100) if total_games > 0 else 0
         win_pct_black = (it.wins_black / total_games * 100) if total_games > 0 else 0
         log.info(f"   • Проценты: ⚪ {win_pct_white:.1f}% | ⚫ {win_pct_black:.1f}%")
+        
+        # Детальный выигрыш по типам
+        log.info(f"   • Истинные победы (±1.0): ⚪ {it.wins_white_true} | ⚫ {it.wins_black_true}")
+        log.info(f"   • По лимиту ходов (±0.8/0.0): ⚪ {it.wins_white_moves_limit} | ⚫ {it.wins_black_moves_limit} | 🤝 {it.draws_moves_limit}")
         
         by_type = [
             ("По очкам (6)", it.wins_by_score),
@@ -187,7 +220,13 @@ class MetricsCollector:
         }
         with open(self.metrics_file, "w") as f:
             json.dump(data, f, indent=2, default=str)
-        log.debug(f"Метрики сохранены в {self.metrics_file}")
+        
+        # Логируем сохранённые метрики текущей итерации
+        if self.iterations:
+            last_it = self.iterations[-1]
+            log.info(f"✅ Метрики сохранены в {self.metrics_file}")
+            log.info(f"   Истинные победы: ⚪ {last_it.wins_white_true} | ⚫ {last_it.wins_black_true}")
+            log.info(f"   По лимиту ходов: ⚪ {last_it.wins_white_moves_limit} | ⚫ {last_it.wins_black_moves_limit} | 🤝 {last_it.draws_moves_limit}")
     
     def get_summary(self):
         """Получить сводку по всем итерациям."""

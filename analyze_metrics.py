@@ -55,12 +55,20 @@ def print_summary(data: Dict):
     total_white_wins = sum(it['wins_white'] for it in iterations)
     total_black_wins = sum(it['wins_black'] for it in iterations)
     total_draws = sum(it['draws'] for it in iterations)
+    # Новые поля: истинные победы (±1.0) и победы по очкам при лимите (±0.8)
+    total_white_true = sum(it.get('wins_white_true', 0) for it in iterations)
+    total_black_true = sum(it.get('wins_black_true', 0) for it in iterations)
+    total_white_by_points = sum(it.get('wins_white_moves_limit', 0) for it in iterations)
+    total_black_by_points = sum(it.get('wins_black_moves_limit', 0) for it in iterations)
     
     print(f"\n🎮 Всего итераций: {len(iterations)}")
     print(f"🎮 Всего игр: {total_games}")
     print(f"   • Побед белых: {total_white_wins} ({total_white_wins/total_games*100:.1f}%)")
     print(f"   • Побед черных: {total_black_wins} ({total_black_wins/total_games*100:.1f}%)")
     print(f"   • Ничьих: {total_draws} ({total_draws/total_games*100:.1f}%)")
+    print(f"\n🔎 Разбор по типу побед:")
+    print(f"   • Истинные победы (±1.0): ⚪ {total_white_true} | ⚫ {total_black_true}")
+    print(f"   • Победы по очкам при лимите (±0.8): ⚪ {total_white_by_points} | ⚫ {total_black_by_points}")
     
     avg_moves = sum(it['avg_moves_per_game'] for it in iterations) / len(iterations)
     print(f"\n⏱️  Среднее количество ходов: {avg_moves:.1f}")
@@ -97,6 +105,13 @@ def print_iteration_details(data: Dict):
               f"{it['draws']:<6} "
               f"{it['train_loss']:<8.4f} "
               f"{status:<12}")
+        # Вывод дополнительных детальных метрик: истинные победы и победы по очкам
+        true_w = it.get('wins_white_true', 0)
+        true_b = it.get('wins_black_true', 0)
+        byp_w = it.get('wins_white_moves_limit', 0)
+        byp_b = it.get('wins_black_moves_limit', 0)
+        draws_byp = it.get('draws_moves_limit', 0)
+        print(f"     → Истинные: ⚪ {true_w} | ⚫ {true_b}  | По очкам: ⚪ {byp_w} | ⚫ {byp_b} | Ничьих по лимиту: {draws_byp}")
     
     print("="*80)
 
