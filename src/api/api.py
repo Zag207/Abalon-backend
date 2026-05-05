@@ -4,6 +4,8 @@ from uuid import UUID
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
+from aiBot.Bot import Bot
+from aiBot.base_alpha_zero.utils import dotdict
 from core.board.circle_team import CircleTeam
 from core.game_state import GameState
 from core.movement.moving_directions import MovingDirections
@@ -40,6 +42,12 @@ class CurrentTeamResponse(BaseModel):
 	curr_team: str
 
 game_state = GameState(fill_circle_board())
+
+bot_args = dotdict({
+    "numMCTSSims": 50,
+    "cpuct": 0.5
+})
+bot = Bot(game=game_state, player=CircleTeam.Black, args=bot_args)
 
 
 def _parse_team(team_name: str) -> CircleTeam:
@@ -84,6 +92,27 @@ def _serialize_board() -> List[CircleResponse]:
 	]
 
 
+@app.get("/move_bot", response_model=MoveResponse)
+def move_bot() -> MoveResponse:
+	moving = bot.calc_move()
+	moving_res = game_state._make_move(moving.circles_checked, moving.moving_direction, CircleTeam.Black)
+
+	return MoveResponse(
+		is_error=moving_res.is_error,
+		is_win=moving_res.is_win,
+		moved_circles=[
+			CircleResponse(
+				id=circle.circle_id,
+				line=circle.coords.line,
+				diagonal=circle.coords.diagonal,
+				team=circle.circle_type.value,
+			)
+			for circle in moving_res.circles_moving
+		],
+		moving_direction=str(moving.moving_direction)
+	)
+
+
 @app.get("/board", response_model=List[CircleResponse])
 def get_board() -> List[CircleResponse]:
 	return _serialize_board()
@@ -115,7 +144,6 @@ def post_move(move_request: MoveRequest) -> MoveResponse:
 		],
 		moving_direction=moving_direction.name,
 	)
-
 
 @app.get("/winner", response_model=WinnerResponse)
 def get_winner() -> WinnerResponse:

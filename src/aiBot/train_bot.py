@@ -19,7 +19,7 @@ if str(CURRENT_DIR) not in sys.path:
 from base_alpha_zero.Coach import Coach
 from aiBot.NumpyAbalonAiGame import NumpyAbalonAiGame as Game
 from neural_net import AbalonNNet as nn
-from utils import *
+from base_alpha_zero.utils import *
 
 log = logging.getLogger(__name__)
 

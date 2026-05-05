@@ -17,7 +17,6 @@ from .base_alpha_zero.Game import Game
 from core.board.circle import Circle
 
 from .game_state_utils import get_matrix_from_board, get_team_from_code
-from core.game_state import GameState
 
 from .action_space import ActionSpace
 
