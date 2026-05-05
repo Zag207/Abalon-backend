@@ -2,6 +2,7 @@ from typing import List
 from uuid import UUID
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from aiBot.Bot import Bot
@@ -13,6 +14,13 @@ from core.setup.prepare_circles import fill_circle_board
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],       # Разрешенные источники
+    allow_credentials=True,      # Разрешить cookies/auth
+    allow_methods=["*"],         # Разрешить все методы (GET, POST, etc.)
+    allow_headers=["*"],         # Разрешить все заголовки
+)
 
 class CircleResponse(BaseModel):
 	id: UUID
