@@ -5,8 +5,6 @@ import logging
 from typing import List
 from uuid import UUID
 
-from numpy import cross
-
 from core.board.board import Board
 from core.board.circle import Circle
 from core.board.circle_team import CircleTeam, get_enemy_team

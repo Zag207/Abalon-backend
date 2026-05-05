@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 from aiBot.Bot import Bot
 from aiBot.base_alpha_zero.utils import dotdict
-from core.board.circle_team import CircleTeam
+from core.board.circle_team import CircleTeam, get_enemy_team
 from core.game_state import GameState
 from core.movement.moving_directions import MovingDirections
 from core.setup.prepare_circles import fill_circle_board
@@ -35,7 +35,7 @@ class MoveResponse(BaseModel):
 
 
 class WinnerResponse(BaseModel):
-	winner_team: str | None
+	winner_team: str | None = Field(description="Значения: Чёрные, Белые, Ничья, None - игра продолжается")
 
 
 class CurrentTeamResponse(BaseModel):
@@ -147,8 +147,17 @@ def post_move(move_request: MoveRequest) -> MoveResponse:
 
 @app.get("/winner", response_model=WinnerResponse)
 def get_winner() -> WinnerResponse:
-	winner = game_state.get_winner_team()
-	return WinnerResponse(winner_team=winner.value if winner is not None else None)
+	curr_team = game_state.curr_team
+	curr_player_value = game_state.get_value_for_player(curr_team)
+
+	if curr_player_value is None:
+		return WinnerResponse(winner_team=None)
+	elif curr_player_value == 0:
+		return WinnerResponse(winner_team="Ничья")
+	elif curr_player_value > 0:
+		return WinnerResponse(winner_team=curr_team.value)
+	else:
+		return WinnerResponse(winner_team=get_enemy_team(curr_team).value)
 
 
 @app.get("/moving-team", response_model=CurrentTeamResponse)
