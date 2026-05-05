@@ -80,7 +80,13 @@ class Arena():
             assert self.display
             print("Game over: Turn ", str(it), "Result ", str(self.game.getGameEnded(board, 1)))
             self.display(board)
-        return curPlayer * self.game.getGameEnded(board, curPlayer)
+        
+        award = curPlayer * self.game.getGameEnded(board, curPlayer)
+
+        if abs(self.game.getGameEnded(board, curPlayer)) == 1:
+            award *= 5  # Увеличиваем награду за традиционную победу, чтобы она была более заметной для обучения
+
+        return award
 
     def playGames(self, num, verbose=False):
         """
@@ -100,8 +106,14 @@ class Arena():
         for _ in tqdm(range(num), desc="Arena.playGames (1)"):
             gameResult = self.playGame(verbose=verbose)
             if gameResult > 0:
+                if abs(gameResult) > 1:
+                    oneWon += 5  # Дополнительные очки за победу по традиционному способу
+
                 oneWon += 1
             elif gameResult < 0:
+                if abs(gameResult) > 1:
+                    twoWon += 5  # Дополнительные очки за победу по традиционному способу
+
                 twoWon += 1
             else:
                 draws += 1
@@ -111,8 +123,14 @@ class Arena():
         for _ in tqdm(range(num), desc="Arena.playGames (2)"):
             gameResult = self.playGame(verbose=verbose)
             if gameResult > 0:
+                if abs(gameResult) > 1:
+                    oneWon += 5  # Дополнительные очки за победу по традиционному способу
+
                 oneWon += 1
             elif gameResult < 0:
+                if abs(gameResult) > 1:
+                    twoWon += 5  # Дополнительные очки за победу по традиционному способу
+
                 twoWon += 1
             else:
                 draws += 1

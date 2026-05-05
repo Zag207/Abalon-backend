@@ -69,8 +69,8 @@ class Coach():
             current_player_name = "Белые" if self.curPlayer == 1 else "Черные"
             
             # Проверка лимита ходов
-            if board.move_count > 200:
-                log.error(f"⚠️ КРИТИЧЕСКАЯ ОШИБКА! Счетчик ходов превышен: {board.move_count}/200   {board.last_score_change_move}")
+            # if board.move_count > 200:
+            #     log.error(f"⚠️ КРИТИЧЕСКАЯ ОШИБКА! Счетчик ходов превышен: {board.move_count}/200   {board.last_score_change_move}")
             # log.warning(f"[Ход {episodeStep}] Ход: {current_player_name} | Счет: Белые={board.score_white} Черные={board.score_black} | Ходов всего: {board.move_count}/200")
             
             canonicalBoard = self.game.getCanonicalForm(board, self.curPlayer)
